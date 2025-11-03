@@ -151,10 +151,14 @@ Si les 4 étapes sont faites correctement:
 
 ## 💡 Fichiers Importants
 
-- **`FIX_RLS_RAPIDE.sql`** → Script SQL à exécuter (ÉTAPE 1)
+- **`FIX_RLS_RAPIDE.sql`** → Script SQL pour les politiques RLS (ÉTAPE 1)
+- **`FIX_COLONNE_PAYMENT_PROOF.sql`** → Script SQL pour ajouter payment_proof_url (ÉTAPE 1B)
+- **`CORRECTION_PAYMENT_PROOF.md`** → Guide détaillé pour l'erreur payment_proof
 - **`VERIFICATION_BUCKETS.md`** → Guide détaillé des buckets (si problème)
 - **`test-supabase.html`** → Page de test (optionnel)
 
 ---
 
-**Si tout fonctionne après ces 3 étapes, vous avez terminé! 🎉**
+**Si tout fonctionne après ces 4 étapes, vous avez terminé! 🎉**
+
+**Temps total: 5-10 minutes**
