@@ -128,18 +128,19 @@ Si la page dit "Cannot read properties of undefined":
 
 Avant de dire que tout est corrigé:
 
-- [ ] Script SQL exécuté → "Success" affiché
+- [ ] Script `FIX_RLS_RAPIDE.sql` exécuté → "Success"
+- [ ] Script `FIX_COLONNE_PAYMENT_PROOF.sql` exécuté → "Success"
 - [ ] Bucket `restaurant-images` existe et est **PUBLIC**
 - [ ] Connexion à l'admin fonctionne (pas d'erreur "undefined")
 - [ ] Upload d'une image dans la galerie fonctionne
-- [ ] Soumission d'une commande fonctionne
+- [ ] Soumission d'une commande fonctionne (avec ou sans preuve)
 - [ ] La commande apparaît dans l'admin et dans Supabase
 
 ---
 
 ## 🎯 C'est TOUT !
 
-Si les 3 étapes sont faites correctement:
+Si les 4 étapes sont faites correctement:
 ✅ Les uploads fonctionnent
 ✅ Les commandes fonctionnent
 ✅ Tout est sauvegardé dans Supabase
