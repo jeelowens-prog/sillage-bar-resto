@@ -15,24 +15,25 @@
     });
 
     function initSupabase() {
-        const SUPABASE_URL = localStorage.getItem('SUPABASE_URL');
-        const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY');
+        // Utiliser Config.js
+        if (typeof window.Config !== 'undefined' && window.Config.Supabase) {
+            const config = window.Config.Supabase.get();
+            if (!config.url || !config.anonKey) {
+                console.warn('Supabase not configured - using static content');
+                return;
+            }
 
-        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-            console.warn('Supabase not configured - using static content');
-            return;
-        }
+            if (typeof window.supabase === 'undefined') {
+                console.error('Supabase library not loaded');
+                return;
+            }
 
-        if (typeof window.supabase === 'undefined') {
-            console.error('Supabase library not loaded');
-            return;
-        }
-
-        try {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            loadMenuItems();
-        } catch (error) {
-            console.error('Error initializing Supabase:', error);
+            try {
+                supabaseClient = window.supabase.createClient(config.url, config.anonKey);
+                loadMenuItems();
+            } catch (error) {
+                console.error('Error initializing Supabase:', error);
+            }
         }
     }
 
