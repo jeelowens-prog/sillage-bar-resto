@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Supabase - Le Sillage</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #8b4513;
+            border-bottom: 3px solid #d4af37;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        .info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+        button {
+            background: #8b4513;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #6d3610;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .code {
+            background: #1f2937;
+            color: #10b981;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Test de Configuration Supabase</h1>
+        <p>Ce script teste votre configuration Supabase et les politiques RLS.</p>
+
+        <div class="test-section">
+            <h3>Configuration détectée:</h3>
+            <div id="config-info" class="test-result info">Chargement...</div>
+        </div>
+
+        <button onclick="runAllTests()">🚀 Lancer tous les tests</button>
+        <button onclick="testStorageUpload()">📤 Tester l'upload d'images</button>
+        <button onclick="testOrderCreation()">🛒 Tester la création de commande</button>
+
+        <div id="test-results"></div>
+
+        <div class="test-section" style="margin-top: 30px;">
+            <h3>📋 Instructions de correction:</h3>
+            <ol>
+                <li>Si les tests échouent, ouvrez le fichier <strong>supabase-schema.sql</strong></li>
+                <li>Copiez tout le contenu</li>
+                <li>Allez dans Supabase Dashboard → SQL Editor</li>
+                <li>Collez et exécutez le script</li>
+                <li>Revenez ici et relancez les tests</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        let supabase = null;
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', function() {
+            initSupabase();
+            displayConfig();
+        });
+
+        function initSupabase() {
+            try {
+                if (typeof window.Config !== 'undefined' && window.Config.Supabase) {
+                    const config = window.Config.Supabase.get();
+                    
+                    if (!config.url || !config.anonKey) {
+                        addResult('error', '❌ Configuration Supabase manquante dans js/config.js');
+                        return false;
+                    }
+
+                    supabase = window.supabase.createClient(config.url, config.anonKey);
+                    addResult('success', '✅ Client Supabase initialisé avec succès');
+                    return true;
+                } else {
+                    addResult('error', '❌ Fichier js/config.js non trouvé');
+                    return false;
+                }
+            } catch (error) {
+                addResult('error', '❌ Erreur d\'initialisation: ' + error.message);
+                return false;
+            }
+        }
+
+        function displayConfig() {
+            const config = window.Config?.Supabase?.get();
+            const configInfo = document.getElementById('config-info');
+            
+            if (config && config.url && config.anonKey) {
+                configInfo.innerHTML = `
+                    <strong>URL:</strong> ${config.url}<br>
+                    <strong>Anon Key:</strong> ${config.anonKey.substring(0, 30)}...<br>
+                    <strong>Status:</strong> ✅ Configuré
+                `;
+                configInfo.className = 'test-result success';
+            } else {
+                configInfo.innerHTML = `
+                    <strong>Status:</strong> ❌ Non configuré<br>
+                    Veuillez vérifier js/config.js
+                `;
+                configInfo.className = 'test-result error';
+            }
+        }
+
+        async function runAllTests() {
+            clearResults();
+            addResult('info', '🚀 Début des tests...');
+            
+            await testConnection();
+            await testTables();
+            await testStorageBuckets();
+            await testRLSPolicies();
+            
+            addResult('info', '✅ Tests terminés!');
+        }
+
+        async function testConnection() {
+            addResult('info', '📡 Test de connexion à Supabase...');
+            
+            if (!supabase) {
+                addResult('error', '❌ Client Supabase non initialisé');
+                return false;
+            }
+
+            try {
+                const { data, error } = await supabase.from('menu_items').select('count', { count: 'exact', head: true });
+                
+                if (error) {
+                    addResult('error', '❌ Erreur de connexion: ' + error.message);
+                    return false;
+                }
+                
+                addResult('success', '✅ Connexion à Supabase réussie');
+                return true;
+            } catch (error) {
+                addResult('error', '❌ Erreur: ' + error.message);
+                return false;
+            }
+        }
+
+        async function testTables() {
+            addResult('info', '📊 Test des tables...');
+            
+            const tables = ['menu_items', 'gallery_images', 'orders', 'reservations', 'admin_users'];
+            
+            for (const table of tables) {
+                try {
+                    const { data, error } = await supabase.from(table).select('count', { count: 'exact', head: true });
+                    
+                    if (error) {
+                        addResult('error', `❌ Table "${table}": ${error.message}`);
+                    } else {
+                        addResult('success', `✅ Table "${table}" existe`);
+                    }
+                } catch (error) {
+                    addResult('error', `❌ Table "${table}": ${error.message}`);
+                }
+            }
+        }
+
+        async function testStorageBuckets() {
+            addResult('info', '💾 Test des buckets de stockage...');
+            
+            try {
+                const { data: buckets, error } = await supabase.storage.listBuckets();
+                
+                if (error) {
+                    addResult('error', '❌ Erreur de lecture des buckets: ' + error.message);
+                    return false;
+                }
+
+                const requiredBuckets = ['restaurant-images', 'payment-proofs'];
+                
+                for (const bucketName of requiredBuckets) {
+                    const bucket = buckets.find(b => b.name === bucketName);
+                    if (bucket) {
+                        addResult('success', `✅ Bucket "${bucketName}" existe`);
+                    } else {
+                        addResult('error', `❌ Bucket "${bucketName}" n'existe pas`);
+                        addResult('info', `👉 Créez le bucket "${bucketName}" dans Supabase Storage`);
+                    }
+                }
+            } catch (error) {
+                addResult('error', '❌ Erreur: ' + error.message);
+            }
+        }
+
+        async function testRLSPolicies() {
+            addResult('info', '🔒 Test des politiques RLS...');
+            
+            // Test: public peut lire le menu
+            try {
+                const { data, error } = await supabase.from('menu_items').select('*').limit(1);
+                
+                if (error) {
+                    addResult('error', '❌ Policy SELECT sur menu_items: ' + error.message);
+                } else {
+                    addResult('success', '✅ Policy SELECT sur menu_items fonctionne');
+                }
+            } catch (error) {
+                addResult('error', '❌ Policy SELECT sur menu_items: ' + error.message);
+            }
+
+            // Test: public peut créer une commande
+            addResult('info', '🧪 Test d\'insertion de commande (sera annulée)...');
+            try {
+                const testOrder = {
+                    customer_name: 'Test User',
+                    customer_phone: '+509 1234-5678',
+                    customer_email: 'test@test.com',
+                    items: [{name: 'Test', price: 100, quantity: 1}],
+                    total_amount: 100,
+                    status: 'pending'
+                };
+
+                const { data, error } = await supabase
+                    .from('orders')
+                    .insert([testOrder])
+                    .select();
+                
+                if (error) {
+                    addResult('error', '❌ Policy INSERT sur orders: ' + error.message);
+                    addResult('error', '👉 Exécutez le script supabase-schema.sql pour corriger les politiques');
+                } else {
+                    addResult('success', '✅ Policy INSERT sur orders fonctionne!');
+                    
+                    // Supprimer la commande de test (si authentifié)
+                    if (data && data[0]) {
+                        await supabase.from('orders').delete().eq('id', data[0].id);
+                        addResult('info', '🗑️ Commande de test supprimée');
+                    }
+                }
+            } catch (error) {
+                addResult('error', '❌ Policy INSERT sur orders: ' + error.message);
+            }
+        }
+
+        async function testStorageUpload() {
+            clearResults();
+            addResult('info', '📤 Test d\'upload d\'image...');
+            
+            if (!supabase) {
+                addResult('error', '❌ Client Supabase non initialisé');
+                return;
+            }
+
+            try {
+                // Créer un petit fichier de test
+                const blob = new Blob(['test image content'], { type: 'text/plain' });
+                const testFile = new File([blob], 'test.txt', { type: 'text/plain' });
+                
+                const fileName = `test-${Date.now()}.txt`;
+                
+                const { data, error } = await supabase.storage
+                    .from('restaurant-images')
+                    .upload(fileName, testFile);
+                
+                if (error) {
+                    addResult('error', '❌ Upload échoué: ' + error.message);
+                    
+                    if (error.message.includes('not found')) {
+                        addResult('error', '👉 Le bucket "restaurant-images" n\'existe pas. Créez-le dans Supabase Storage.');
+                    } else if (error.message.includes('policy')) {
+                        addResult('error', '👉 Les politiques de stockage ne sont pas configurées. Exécutez supabase-schema.sql');
+                    }
+                } else {
+                    addResult('success', '✅ Upload réussi!');
+                    
+                    // Nettoyer
+                    await supabase.storage.from('restaurant-images').remove([fileName]);
+                    addResult('info', '🗑️ Fichier de test supprimé');
+                }
+            } catch (error) {
+                addResult('error', '❌ Erreur: ' + error.message);
+            }
+        }
+
+        async function testOrderCreation() {
+            clearResults();
+            addResult('info', '🛒 Test de création de commande...');
+            
+            if (!supabase) {
+                addResult('error', '❌ Client Supabase non initialisé');
+                return;
+            }
+
+            try {
+                const testOrder = {
+                    customer_name: 'Client Test',
+                    customer_phone: '+509 3838-8888',
+                    customer_email: 'test@lesillage.ht',
+                    delivery_address: '123 Rue Test, Port-au-Prince',
+                    items: [
+                        { name: 'Griot Traditionnel', price: 850, quantity: 1 },
+                        { name: 'Soupe Joumou', price: 650, quantity: 1 }
+                    ],
+                    total_amount: 1500,
+                    status: 'pending',
+                    payment_method: 'moncash',
+                    notes: 'Commande de test'
+                };
+
+                const { data, error } = await supabase
+                    .from('orders')
+                    .insert([testOrder])
+                    .select();
+                
+                if (error) {
+                    addResult('error', '❌ Création de commande échouée: ' + error.message);
+                    
+                    if (error.message.includes('policy')) {
+                        addResult('error', '👉 Les politiques RLS bloquent l\'insertion. Exécutez supabase-schema.sql');
+                        addResult('info', '<div class="code">CREATE POLICY "Public can create orders"<br>ON orders FOR INSERT<br>TO public<br>WITH CHECK (true);</div>');
+                    }
+                } else {
+                    addResult('success', '✅ Commande créée avec succès!');
+                    addResult('success', `📝 ID de la commande: ${data[0].id}`);
+                    
+                    // Ne pas supprimer pour que l'admin puisse la voir
+                    addResult('info', '💡 Vous pouvez voir cette commande dans le portail admin');
+                }
+            } catch (error) {
+                addResult('error', '❌ Erreur: ' + error.message);
+            }
+        }
+
+        function addResult(type, message) {
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.innerHTML = message;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
