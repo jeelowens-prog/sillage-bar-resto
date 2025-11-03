@@ -59,12 +59,25 @@
         }
     </style>
   
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // Initialisation de Supabase
-    const supabaseUrl = 'VOTRE_URL_SUPABASE'
-    const supabaseKey = 'VOTRE_CLE_API_PUBLIQUE'
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey)
+    // Load Supabase config from localStorage
+    const SUPABASE_URL = localStorage.getItem('SUPABASE_URL');
+    const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY');
+    
+    // Set as window variables for other scripts
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      window.SUPABASE_URL = SUPABASE_URL;
+      window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+    } else {
+      // Redirect to config page if not configured
+      console.warn('Supabase not configured. Redirecting to configuration page...');
+      setTimeout(() => {
+        if (!window.location.pathname.includes('supabase-config')) {
+          window.location.href = 'supabase-config.html';
+        }
+      }, 3000);
+    }
   </script>
   </head>
 <body>
