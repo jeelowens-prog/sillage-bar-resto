@@ -1,10 +1,10 @@
-# ⚡ CORRECTION ULTRA-RAPIDE - 3 ÉTAPES
+# ⚡ CORRECTION ULTRA-RAPIDE - 4 ÉTAPES
 
-## 🎯 Faites EXACTEMENT ces 3 étapes dans l'ordre
+## 🎯 Faites EXACTEMENT ces 4 étapes dans l'ordre
 
 ---
 
-## ÉTAPE 1: Exécuter le Script SQL ⭐ CRITIQUE
+## ÉTAPE 1: Exécuter le Script SQL (Politiques RLS) ⭐ CRITIQUE
 
 1. Allez sur https://supabase.com
 2. Ouvrez votre projet
@@ -16,7 +16,21 @@
 8. Cliquez sur **Run** (ou appuyez sur Ctrl+Enter)
 9. Attendez que "Success" apparaisse (10-30 secondes)
 
-✅ **Cette étape corrige le problème des commandes qui ne fonctionnent pas**
+✅ **Cette étape corrige les politiques RLS**
+
+---
+
+## ÉTAPE 1B: Ajouter la Colonne payment_proof_url ⭐ IMPORTANT
+
+1. Toujours dans **SQL Editor**
+2. Cliquez sur **New Query**
+3. Ouvrez le fichier **`FIX_COLONNE_PAYMENT_PROOF.sql`**
+4. Copiez **TOUT** le contenu
+5. Collez dans l'éditeur SQL
+6. Cliquez sur **Run**
+7. Attendez "Success"
+
+✅ **Cette étape ajoute les colonnes manquantes à la table orders**
 
 ---
 
