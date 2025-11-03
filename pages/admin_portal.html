@@ -3,1144 +3,1291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portail Admin - Le Sillage Bar Restaurant | Gestion Complète</title>
-    <meta name="description" content="Interface de gestion complète pour Le Sillage Bar Restaurant. Gérez le menu, les commandes, le contenu et les analyses en temps réel.">
+    <title>Portail Admin - Le Sillage Bar Restaurant</title>
     <link rel="stylesheet" href="../css/main.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  
-  <script type="module" src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fsillagere8558back.builtwithrocket.new&_be=https%3A%2F%2Fapplication.rocket.new&_v=0.1.9"></script>
-  <script type="module" src="https://static.rocket.new/rocket-shot.js?v=0.0.1"></script>
-  </head>
-<body class="bg-background text-text-primary">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Admin Portal Styles */
+        :root {
+            --admin-primary: #8b4513;
+            --admin-primary-dark: #6d3610;
+            --admin-secondary: #d4af37;
+            --admin-success: #10b981;
+            --admin-warning: #f59e0b;
+            --admin-error: #ef4444;
+            --admin-bg: #f9fafb;
+        }
+        
+        body {
+            background: var(--admin-bg);
+        }
+        
+        .admin-header {
+            background: var(--admin-primary);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .admin-container {
+            display: flex;
+            min-height: calc(100vh - 70px);
+            margin-top: 70px;
+        }
+        
+        .admin-sidebar {
+            width: 250px;
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            position: fixed;
+            height: calc(100vh - 70px);
+            overflow-y: auto;
+        }
+        
+        .admin-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 2rem;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #374151;
+        }
+        
+        .nav-item:hover {
+            background: #f3f4f6;
+        }
+        
+        .nav-item.active {
+            background: var(--admin-primary);
+            color: white;
+        }
+        
+        .nav-item svg {
+            width: 20px;
+            height: 20px;
+            margin-right: 0.75rem;
+        }
+        
+        .section {
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--admin-primary);
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: var(--admin-primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--admin-primary-dark);
+        }
+        
+        .btn-success {
+            background: var(--admin-success);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: var(--admin-warning);
+            color: white;
+        }
+        
+        .btn-error {
+            background: var(--admin-error);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th {
+            background: #f9fafb;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .table tr:hover {
+            background: #f9fafb;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--admin-primary);
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .gallery-item {
+            position: relative;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .gallery-item-actions {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--admin-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
     <!-- Admin Header -->
-    <header class="fixed top-0 left-0 right-0 z-50 bg-primary text-white shadow-card">
-        <nav class="container mx-auto px-4 py-4">
-            <div class="flex items-center justify-between">
-                <!-- Admin Logo -->
-                <div class="flex items-center space-x-3">
-                    <svg class="w-8 h-8 text-accent" viewBox="0 0 40 40" fill="currentColor">
-                        <path d="M20 2C15.5 2 12 5.5 12 10c0 2.5 1 4.8 2.6 6.5L20 22l5.4-5.5C27 14.8 28 12.5 28 10c0-4.5-3.5-8-8-8zm0 11c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z"/>
-                        <path d="M8 28c0-6.6 5.4-12 12-12s12 5.4 12 12v8c0 1.1-.9 2-2 2H10c-1.1 0-2-.9-2-2v-8z"/>
-                    </svg>
-                    <div>
-                        <h1 class="text-lg font-playfair font-bold">Le Sillage Admin</h1>
-                        <p class="text-xs text-primary-200">Portail de Gestion</p>
-                    </div>
-                </div>
-
-                <!-- Admin Actions -->
-                <div class="flex items-center space-x-4">
-                    <!-- Notifications -->
-                    <button class="relative p-2 hover:bg-primary-700 rounded-full transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                        </svg>
-                        <span class="absolute -top-1 -right-1 bg-error text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
-                    </button>
-
-                    <!-- User Profile -->
-                    <div class="flex items-center space-x-3">
-                        <img src="https://images.unsplash.com/photo-1695137354060-89d285ca808b" 
-                             alt="Photo de profil de l'administrateur Jean-Claude Moïse" 
-                             class="w-8 h-8 rounded-full object-cover"
-                             onerror="this.src='https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150'; this.onerror=null;">
-                        <div class="hidden md:block">
-                            <div class="text-sm font-medium">Jean-Claude Moïse</div>
-                            <div class="text-xs text-primary-300">Administrateur</div>
-                        </div>
-                    </div>
-
-                    <!-- Logout -->
-                    <button class="p-2 hover:bg-primary-700 rounded-full transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                        </svg>
-                    </button>
+    <header class="admin-header fixed top-0 left-0 right-0 z-50">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <svg class="w-8 h-8" viewBox="0 0 40 40" fill="currentColor">
+                    <path d="M20 2C15.5 2 12 5.5 12 10c0 2.5 1 4.8 2.6 6.5L20 22l5.4-5.5C27 14.8 28 12.5 28 10c0-4.5-3.5-8-8-8zm0 11c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z"/>
+                    <path d="M8 28c0-6.6 5.4-12 12-12s12 5.4 12 12v8c0 1.1-.9 2-2 2H10c-1.1 0-2-.9-2-2v-8z"/>
+                </svg>
+                <div>
+                    <h1 class="text-xl font-bold">Le Sillage Admin</h1>
+                    <p class="text-xs opacity-80">Portail de Gestion</p>
                 </div>
             </div>
-        </nav>
+            <div class="flex items-center gap-4">
+                <span id="admin-name" class="text-sm"></span>
+                <button onclick="logout()" class="btn btn-sm" style="background: rgba(255,255,255,0.2);">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    Déconnexion
+                </button>
+            </div>
+        </div>
     </header>
 
-    <!-- Main Layout -->
-    <div class="flex pt-20">
+    <div class="admin-container">
         <!-- Sidebar -->
-        <aside class="fixed left-0 top-20 bottom-0 w-64 bg-surface border-r border-primary-100 overflow-y-auto">
-            <nav class="p-4">
-                <!-- Quick Stats -->
-                <div class="mb-6">
-                    <h3 class="text-sm font-medium text-text-secondary mb-3">Aperçu Rapide</h3>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-white p-3 rounded-lg shadow-card">
-                            <div class="text-lg font-bold text-secondary">24</div>
-                            <div class="text-xs text-text-secondary">Commandes Aujourd'hui</div>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg shadow-card">
-                            <div class="text-lg font-bold text-success">15</div>
-                            <div class="text-xs text-text-secondary">Plats Disponibles</div>
-                        </div>
-                    </div>
+        <aside class="admin-sidebar">
+            <nav>
+                <div class="nav-item active" onclick="showSection('dashboard')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    <span>Tableau de Bord</span>
                 </div>
-
-                <!-- Navigation Menu -->
-                <ul class="space-y-2">
-                    <li>
-                        <a href="#dashboard" class="flex items-center space-x-3 p-3 rounded-lg bg-primary text-white">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6a2 2 0 01-2 2H10a2 2 0 01-2-2V5z"/>
-                            </svg>
-                            <span>Tableau de Bord</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#menu-management" class="flex items-center space-x-3 p-3 rounded-lg text-text-primary hover:bg-primary-50 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                            </svg>
-                            <span>Gestion Menu</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#orders" class="flex items-center space-x-3 p-3 rounded-lg text-text-primary hover:bg-primary-50 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-                            </svg>
-                            <span>Commandes</span>
-                            <span class="bg-error text-white text-xs px-2 py-1 rounded-full ml-auto">5</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#content" class="flex items-center space-x-3 p-3 rounded-lg text-text-primary hover:bg-primary-50 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                            <span>Contenu & Galerie</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#analytics" class="flex items-center space-x-3 p-3 rounded-lg text-text-primary hover:bg-primary-50 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                            </svg>
-                            <span>Analyses</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#reservations" class="flex items-center space-x-3 p-3 rounded-lg text-text-primary hover:bg-primary-50 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                            <span>Réservations</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#inventory" class="flex items-center space-x-3 p-3 rounded-lg text-text-primary hover:bg-primary-50 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                            </svg>
-                            <span>Inventaire</span>
-                            <span class="bg-warning text-white text-xs px-2 py-1 rounded-full ml-auto">!</span>
-                        </a>
-                    </li>
-                </ul>
-
-                <!-- Quick Actions -->
-                <div class="mt-8">
-                    <h3 class="text-sm font-medium text-text-secondary mb-3">Actions Rapides</h3>
-                    <div class="space-y-2">
-                        <button class="w-full bg-secondary text-white p-3 rounded-lg hover:bg-secondary-600 transition-colors text-sm">
-                            Ajouter Nouveau Plat
-                        </button>
-                        <button class="w-full bg-accent text-primary p-3 rounded-lg hover:bg-accent-600 transition-colors text-sm">
-                            Publier Actualité
-                        </button>
-                    </div>
+                <div class="nav-item" onclick="showSection('menu')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                    <span>Menu</span>
                 </div>
-
-                <!-- Site Navigation -->
-                <div class="mt-8 pt-6 border-t border-primary-100">
-                    <h3 class="text-sm font-medium text-text-secondary mb-3">Navigation Site</h3>
-                    <div class="space-y-1">
-                        <a href="homepage.html" class="block text-sm text-text-secondary hover:text-primary transition-colors">Accueil</a>
-                        <a href="interactive_menu.html" class="block text-sm text-text-secondary hover:text-primary transition-colors">Menu</a>
-                        <a href="gallery.html" class="block text-sm text-text-secondary hover:text-primary transition-colors">Galerie</a>
-                        <a href="contact.html" class="block text-sm text-text-secondary hover:text-primary transition-colors">Contact</a>
-                    </div>
+                <div class="nav-item" onclick="showSection('gallery')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span>Galerie</span>
+                </div>
+                <div class="nav-item" onclick="showSection('orders')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                    <span>Commandes</span>
+                </div>
+                <div class="nav-item" onclick="showSection('reservations')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span>Réservations</span>
                 </div>
             </nav>
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 ml-64 p-6">
+        <main class="admin-content">
             <!-- Dashboard Section -->
-            <section id="dashboard" class="mb-8">
-                <!-- Page Header -->
-                <div class="mb-8">
-                    <h1 class="text-3xl font-playfair font-bold text-primary mb-2">Tableau de Bord</h1>
-                    <p class="text-text-secondary">Aperçu des performances du restaurant - 2 novembre 2025</p>
-                </div>
-
-                <!-- Key Metrics -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-2xl shadow-card">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 bg-secondary-100 rounded-full flex items-center justify-center">
-                                <svg class="w-6 h-6 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-                                </svg>
-                            </div>
-                            <span class="text-success text-sm font-medium">+12%</span>
-                        </div>
-                        <div class="text-2xl font-bold text-primary mb-1">24</div>
-                        <div class="text-text-secondary text-sm">Commandes Aujourd'hui</div>
+            <div id="dashboard" class="section active">
+                <h2 class="text-3xl font-bold mb-6 text-gray-800">Tableau de Bord</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-menu-items">0</div>
+                        <div class="stat-label">Plats au Menu</div>
                     </div>
-
-                    <div class="bg-white p-6 rounded-2xl shadow-card">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 bg-accent-100 rounded-full flex items-center justify-center">
-                                <svg class="w-6 h-6 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
-                                </svg>
-                            </div>
-                            <span class="text-success text-sm font-medium">+8%</span>
-                        </div>
-                        <div class="text-2xl font-bold text-primary mb-1">18,450 HTG</div>
-                        <div class="text-text-secondary text-sm">Revenus du Jour</div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-gallery-images">0</div>
+                        <div class="stat-label">Images Galerie</div>
                     </div>
-
-                    <div class="bg-white p-6 rounded-2xl shadow-card">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 bg-success-100 rounded-full flex items-center justify-center">
-                                <svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                </svg>
-                            </div>
-                            <span class="text-success text-sm font-medium">+5%</span>
-                        </div>
-                        <div class="text-2xl font-bold text-primary mb-1">156</div>
-                        <div class="text-text-secondary text-sm">Clients Cette Semaine</div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-orders">0</div>
+                        <div class="stat-label">Commandes</div>
                     </div>
-
-                    <div class="bg-white p-6 rounded-2xl shadow-card">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                                <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
-                                </svg>
-                            </div>
-                            <span class="text-success text-sm font-medium">4.9</span>
-                        </div>
-                        <div class="text-2xl font-bold text-primary mb-1">4.8</div>
-                        <div class="text-text-secondary text-sm">Note Moyenne</div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-reservations">0</div>
+                        <div class="stat-label">Réservations</div>
                     </div>
                 </div>
 
-                <!-- Recent Activity & Charts -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <!-- Sales Chart -->
-                    <div class="bg-white p-6 rounded-2xl shadow-card">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-lg font-playfair font-semibold text-primary">Ventes de la Semaine</h3>
-                            <select class="text-sm border border-primary-200 rounded-lg px-3 py-1">
-                                <option>7 derniers jours</option>
-                                <option>30 derniers jours</option>
-                                <option>3 derniers mois</option>
-                            </select>
-                        </div>
-                        <div class="h-64 flex items-end justify-between space-x-2">
-                            <div class="flex flex-col items-center">
-                                <div class="w-8 bg-secondary h-32 rounded-t-lg mb-2"></div>
-                                <span class="text-xs text-text-secondary">Lun</span>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <div class="w-8 bg-secondary h-24 rounded-t-lg mb-2"></div>
-                                <span class="text-xs text-text-secondary">Mar</span>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <div class="w-8 bg-secondary h-40 rounded-t-lg mb-2"></div>
-                                <span class="text-xs text-text-secondary">Mer</span>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <div class="w-8 bg-secondary h-28 rounded-t-lg mb-2"></div>
-                                <span class="text-xs text-text-secondary">Jeu</span>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <div class="w-8 bg-secondary h-48 rounded-t-lg mb-2"></div>
-                                <span class="text-xs text-text-secondary">Ven</span>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <div class="w-8 bg-secondary h-52 rounded-t-lg mb-2"></div>
-                                <span class="text-xs text-text-secondary">Sam</span>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <div class="w-8 bg-secondary h-36 rounded-t-lg mb-2"></div>
-                                <span class="text-xs text-text-secondary">Dim</span>
-                            </div>
-                        </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Commandes Récentes</h3>
                     </div>
-
-                    <!-- Recent Orders -->
-                    <div class="bg-white p-6 rounded-2xl shadow-card">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-lg font-playfair font-semibold text-primary">Commandes Récentes</h3>
-                            <a href="#orders" class="text-secondary text-sm hover:text-secondary-600 transition-colors">Voir tout</a>
-                        </div>
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between p-3 bg-surface rounded-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-success-100 rounded-full flex items-center justify-center">
-                                        <span class="text-success text-sm font-medium">#24</span>
-                                    </div>
-                                    <div>
-                                        <div class="font-medium text-sm">Marie Dupont</div>
-                                        <div class="text-xs text-text-secondary">Griot + Riz Collé</div>
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-sm font-medium">850 HTG</div>
-                                    <div class="text-xs text-success">Livré</div>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center justify-between p-3 bg-surface rounded-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-warning-100 rounded-full flex items-center justify-center">
-                                        <span class="text-warning text-sm font-medium">#23</span>
-                                    </div>
-                                    <div>
-                                        <div class="font-medium text-sm">Jean Baptiste</div>
-                                        <div class="text-xs text-text-secondary">Poisson Rouge + Bananes</div>
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-sm font-medium">950 HTG</div>
-                                    <div class="text-xs text-warning">En préparation</div>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center justify-between p-3 bg-surface rounded-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center">
-                                        <span class="text-secondary text-sm font-medium">#22</span>
-                                    </div>
-                                    <div>
-                                        <div class="font-medium text-sm">Claudette Pierre</div>
-                                        <div class="text-xs text-text-secondary">Soupe Joumou</div>
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-sm font-medium">650 HTG</div>
-                                    <div class="text-xs text-secondary">En livraison</div>
-                                </div>
-                            </div>
-                        </div>
+                    <div id="recent-orders-list" class="loading">
+                        <div class="spinner"></div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Inventory Alerts -->
-                <div class="bg-white p-6 rounded-2xl shadow-card mb-8">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-playfair font-semibold text-primary">Alertes Inventaire</h3>
-                        <button class="text-secondary text-sm hover:text-secondary-600 transition-colors">Gérer l'inventaire</button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="flex items-center space-x-3 p-4 bg-error-50 rounded-lg border border-error-200">
-                            <svg class="w-6 h-6 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                            </svg>
-                            <div>
-                                <div class="font-medium text-error">Stock Faible</div>
-                                <div class="text-sm text-error-600">Porc pour Griot (2kg restant)</div>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center space-x-3 p-4 bg-warning-50 rounded-lg border border-warning-200">
-                            <svg class="w-6 h-6 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <div>
-                                <div class="font-medium text-warning">À Réapprovisionner</div>
-                                <div class="text-sm text-warning-600">Giraumon (5 unités)</div>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center space-x-3 p-4 bg-success-50 rounded-lg border border-success-200">
-                            <svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <div>
-                                <div class="font-medium text-success">Stock Optimal</div>
-                                <div class="text-sm text-success-600">Riz, Bananes, Épices</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Menu Management Section -->
-            <section id="menu-management" class="mb-8 hidden">
-                <div class="mb-8">
-                    <h1 class="text-3xl font-playfair font-bold text-primary mb-2">Gestion du Menu</h1>
-                    <p class="text-text-secondary">Gérez vos plats, prix et disponibilité en temps réel</p>
-                </div>
-
-                <!-- Menu Actions -->
-                <div class="flex flex-col sm:flex-row gap-4 mb-6">
-                    <button class="bg-secondary text-white px-6 py-3 rounded-lg hover:bg-secondary-600 transition-colors shadow-button">
-                        <span class="flex items-center space-x-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                            </svg>
-                            <span>Ajouter Nouveau Plat</span>
-                        </span>
-                    </button>
-                    <button class="bg-accent text-primary px-6 py-3 rounded-lg hover:bg-accent-600 transition-colors">
-                        Importer Menu
-                    </button>
-                    <button class="border border-primary text-primary px-6 py-3 rounded-lg hover:bg-primary-50 transition-colors">
-                        Exporter Menu
+            <!-- Menu Section -->
+            <div id="menu" class="section">
+                <div class="card-header">
+                    <h2 class="text-3xl font-bold text-gray-800">Gestion du Menu</h2>
+                    <button onclick="openMenuModal()" class="btn btn-primary">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Ajouter un Plat
                     </button>
                 </div>
-
-                <!-- Menu Categories -->
-                <div class="bg-white rounded-2xl shadow-card overflow-hidden">
-                    <div class="p-6 border-b border-primary-100">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-playfair font-semibold text-primary">Plats du Menu</h3>
-                            <div class="flex items-center space-x-4">
-                                <select class="border border-primary-200 rounded-lg px-3 py-2 text-sm">
-                                    <option>Toutes catégories</option>
-                                    <option>Plats Principaux</option>
-                                    <option>Entrées</option>
-                                    <option>Desserts</option>
-                                    <option>Boissons</option>
-                                </select>
-                                <div class="relative">
-                                    <input type="text" placeholder="Rechercher un plat..." class="border border-primary-200 rounded-lg pl-10 pr-4 py-2 text-sm">
-                                    <svg class="w-4 h-4 text-text-secondary absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Menu Items Table -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-surface">
-                                <tr>
-                                    <th class="text-left p-4 font-medium text-text-secondary">Plat</th>
-                                    <th class="text-left p-4 font-medium text-text-secondary">Catégorie</th>
-                                    <th class="text-left p-4 font-medium text-text-secondary">Prix</th>
-                                    <th class="text-left p-4 font-medium text-text-secondary">Statut</th>
-                                    <th class="text-left p-4 font-medium text-text-secondary">Commandes</th>
-                                    <th class="text-left p-4 font-medium text-text-secondary">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-primary-100">
-                                <tr class="hover:bg-surface transition-colors">
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-3">
-                                            <img src="https://images.unsplash.com/photo-1665469222974-a4bbbff56914" 
-                                                 alt="Photo du plat Griot Traditionnel avec porc mariné" 
-                                                 class="w-12 h-12 rounded-lg object-cover"
-                                                 onerror="this.src='https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=60'; this.onerror=null;">
-                                            <div>
-                                                <div class="font-medium">Griot Traditionnel</div>
-                                                <div class="text-sm text-text-secondary">Porc mariné aux épices créoles</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="p-4">
-                                        <span class="bg-secondary-100 text-secondary px-2 py-1 rounded-full text-sm">Plat Principal</span>
-                                    </td>
-                                    <td class="p-4 font-medium">850 HTG</td>
-                                    <td class="p-4">
-                                        <span class="bg-success-100 text-success px-2 py-1 rounded-full text-sm">Disponible</span>
-                                    </td>
-                                    <td class="p-4">12 aujourd'hui</td>
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-2">
-                                            <button class="p-2 text-primary hover:bg-primary-50 rounded-lg transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                                </svg>
-                                            </button>
-                                            <button class="p-2 text-error hover:bg-error-50 rounded-lg transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                <tr class="hover:bg-surface transition-colors">
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-3">
-                                            <img src="https://images.unsplash.com/photo-1605327091716-cd0b74d8d783" 
-                                                 alt="Photo du plat Poisson Rouge Grillé aux épices caribéennes" 
-                                                 class="w-12 h-12 rounded-lg object-cover"
-                                                 onerror="this.src='https://images.pixabay.com/photo/2017/01/11/11/33/cake-1971552_60.jpg'; this.onerror=null;">
-                                            <div>
-                                                <div class="font-medium">Poisson Rouge Grillé</div>
-                                                <div class="text-sm text-text-secondary">Poisson frais aux épices caribéennes</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="p-4">
-                                        <span class="bg-secondary-100 text-secondary px-2 py-1 rounded-full text-sm">Plat Principal</span>
-                                    </td>
-                                    <td class="p-4 font-medium">950 HTG</td>
-                                    <td class="p-4">
-                                        <span class="bg-success-100 text-success px-2 py-1 rounded-full text-sm">Disponible</span>
-                                    </td>
-                                    <td class="p-4">8 aujourd'hui</td>
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-2">
-                                            <button class="p-2 text-primary hover:bg-primary-50 rounded-lg transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                                </svg>
-                                            </button>
-                                            <button class="p-2 text-error hover:bg-error-50 rounded-lg transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                <tr class="hover:bg-surface transition-colors">
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-3">
-                                            <img src="https://images.unsplash.com/photo-1660046173823-56a806d759ba" 
-                                                 alt="Photo du plat Soupe Joumou traditionnelle haïtienne" 
-                                                 class="w-12 h-12 rounded-lg object-cover"
-                                                 onerror="this.src='https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=60'; this.onerror=null;">
-                                            <div>
-                                                <div class="font-medium">Soupe Joumou</div>
-                                                <div class="text-sm text-text-secondary">Soupe traditionnelle au giraumon</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="p-4">
-                                        <span class="bg-accent-100 text-accent-600 px-2 py-1 rounded-full text-sm">Traditionnel</span>
-                                    </td>
-                                    <td class="p-4 font-medium">650 HTG</td>
-                                    <td class="p-4">
-                                        <span class="bg-warning-100 text-warning px-2 py-1 rounded-full text-sm">Stock Limité</span>
-                                    </td>
-                                    <td class="p-4">4 aujourd'hui</td>
-                                    <td class="p-4">
-                                        <div class="flex items-center space-x-2">
-                                            <button class="p-2 text-primary hover:bg-primary-50 rounded-lg transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                                </svg>
-                                            </button>
-                                            <button class="p-2 text-error hover:bg-error-50 rounded-lg transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                
+                <div class="card">
+                    <div id="menu-list" class="loading">
+                        <div class="spinner"></div>
                     </div>
                 </div>
-            </section>
+            </div>
+
+            <!-- Gallery Section -->
+            <div id="gallery" class="section">
+                <div class="card-header">
+                    <h2 class="text-3xl font-bold text-gray-800">Gestion de la Galerie</h2>
+                    <button onclick="openGalleryModal()" class="btn btn-primary">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Ajouter une Image
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div id="gallery-list" class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Orders Section -->
-            <section id="orders" class="mb-8 hidden">
-                <div class="mb-8">
-                    <h1 class="text-3xl font-playfair font-bold text-primary mb-2">Gestion des Commandes</h1>
-                    <p class="text-text-secondary">Suivez et gérez toutes les commandes en temps réel</p>
-                </div>
-
-                <!-- Order Filters -->
-                <div class="bg-white p-6 rounded-2xl shadow-card mb-6">
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <select class="border border-primary-200 rounded-lg px-4 py-2">
-                            <option>Toutes les commandes</option>
-                            <option>En attente</option>
-                            <option>En préparation</option>
-                            <option>En livraison</option>
-                            <option>Livrées</option>
-                            <option>Annulées</option>
-                        </select>
-                        <select class="border border-primary-200 rounded-lg px-4 py-2">
-                            <option>Aujourd'hui</option>
-                            <option>Cette semaine</option>
-                            <option>Ce mois</option>
-                        </select>
-                        <div class="relative flex-1">
-                            <input type="text" placeholder="Rechercher par nom ou numéro..." class="w-full border border-primary-200 rounded-lg pl-10 pr-4 py-2">
-                            <svg class="w-4 h-4 text-text-secondary absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                        </div>
+            <div id="orders" class="section">
+                <h2 class="text-3xl font-bold mb-6 text-gray-800">Gestion des Commandes</h2>
+                
+                <div class="card">
+                    <div id="orders-list" class="loading">
+                        <div class="spinner"></div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Orders List -->
-                <div class="space-y-4">
-                    <!-- Order 1 -->
-                    <div class="bg-white p-6 rounded-2xl shadow-card">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-4">
-                                <div class="w-12 h-12 bg-warning-100 rounded-full flex items-center justify-center">
-                                    <span class="text-warning font-bold">#24</span>
-                                </div>
-                                <div>
-                                    <h3 class="font-medium">Marie Dupont</h3>
-                                    <p class="text-sm text-text-secondary">+509 3456-7890 • marie.dupont@email.com</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-lg font-bold text-primary">850 HTG</div>
-                                <div class="text-sm text-text-secondary">MonCash</div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            <div>
-                                <h4 class="text-sm font-medium text-text-secondary mb-2">Commande</h4>
-                                <div class="space-y-1">
-                                    <div class="flex justify-between text-sm">
-                                        <span>1x Griot Traditionnel</span>
-                                        <span>850 HTG</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-medium text-text-secondary mb-2">Livraison</h4>
-                                <p class="text-sm">123 Rue Lamarre, Port-au-Prince</p>
-                                <p class="text-xs text-text-secondary">Estimée: 19h30</p>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-medium text-text-secondary mb-2">Statut</h4>
-                                <span class="bg-warning-100 text-warning px-3 py-1 rounded-full text-sm">En préparation</span>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center justify-between pt-4 border-t border-primary-100">
-                            <div class="text-sm text-text-secondary">
-                                Commandé à 18h45 • Temps écoulé: 25 min
-                            </div>
-                            <div class="flex space-x-2">
-                                <button class="bg-success text-white px-4 py-2 rounded-lg text-sm hover:bg-success-600 transition-colors">
-                                    Marquer Prêt
-                                </button>
-                                <button class="border border-error text-error px-4 py-2 rounded-lg text-sm hover:bg-error-50 transition-colors">
-                                    Annuler
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Order 2 -->
-                    <div class="bg-white p-6 rounded-2xl shadow-card">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-4">
-                                <div class="w-12 h-12 bg-secondary-100 rounded-full flex items-center justify-center">
-                                    <span class="text-secondary font-bold">#23</span>
-                                </div>
-                                <div>
-                                    <h3 class="font-medium">Jean Baptiste</h3>
-                                    <p class="text-sm text-text-secondary">+509 2345-6789 • jean.baptiste@email.com</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-lg font-bold text-primary">950 HTG</div>
-                                <div class="text-sm text-text-secondary">MonCash</div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            <div>
-                                <h4 class="text-sm font-medium text-text-secondary mb-2">Commande</h4>
-                                <div class="space-y-1">
-                                    <div class="flex justify-between text-sm">
-                                        <span>1x Poisson Rouge Grillé</span>
-                                        <span>950 HTG</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-medium text-text-secondary mb-2">Livraison</h4>
-                                <p class="text-sm">456 Avenue John Brown, Port-au-Prince</p>
-                                <p class="text-xs text-text-secondary">Estimée: 19h45</p>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-medium text-text-secondary mb-2">Statut</h4>
-                                <span class="bg-secondary-100 text-secondary px-3 py-1 rounded-full text-sm">En livraison</span>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center justify-between pt-4 border-t border-primary-100">
-                            <div class="text-sm text-text-secondary">
-                                Commandé à 18h30 • En livraison depuis 10 min
-                            </div>
-                            <div class="flex space-x-2">
-                                <button class="bg-success text-white px-4 py-2 rounded-lg text-sm hover:bg-success-600 transition-colors">
-                                    Marquer Livré
-                                </button>
-                                <button class="border border-primary text-primary px-4 py-2 rounded-lg text-sm hover:bg-primary-50 transition-colors">
-                                    Contacter Client
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Order 3 -->
-                    <div class="bg-white p-6 rounded-2xl shadow-card">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-4">
-                                <div class="w-12 h-12 bg-success-100 rounded-full flex items-center justify-center">
-                                    <span class="text-success font-bold">#22</span>
-                                </div>
-                                <div>
-                                    <h3 class="font-medium">Claudette Pierre</h3>
-                                    <p class="text-sm text-text-secondary">+509 1234-5678 • claudette.pierre@email.com</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-lg font-bold text-primary">650 HTG</div>
-                                <div class="text-sm text-text-secondary">MonCash</div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            <div>
-                                <h4 class="text-sm font-medium text-text-secondary mb-2">Commande</h4>
-                                <div class="space-y-1">
-                                    <div class="flex justify-between text-sm">
-                                        <span>1x Soupe Joumou</span>
-                                        <span>650 HTG</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-medium text-text-secondary mb-2">Livraison</h4>
-                                <p class="text-sm">789 Rue Capois, Port-au-Prince</p>
-                                <p class="text-xs text-text-secondary">Livrée à 18h15</p>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-medium text-text-secondary mb-2">Statut</h4>
-                                <span class="bg-success-100 text-success px-3 py-1 rounded-full text-sm">Livrée</span>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center justify-between pt-4 border-t border-primary-100">
-                            <div class="text-sm text-text-secondary">
-                                Commandé à 17h45 • Livrée en 30 min
-                            </div>
-                            <div class="flex space-x-2">
-                                <button class="bg-accent text-primary px-4 py-2 rounded-lg text-sm hover:bg-accent-600 transition-colors">
-                                    Demander Avis
-                                </button>
-                                <button class="border border-primary text-primary px-4 py-2 rounded-lg text-sm hover:bg-primary-50 transition-colors">
-                                    Voir Détails
-                                </button>
-                            </div>
-                        </div>
+            <!-- Reservations Section -->
+            <div id="reservations" class="section">
+                <h2 class="text-3xl font-bold mb-6 text-gray-800">Gestion des Réservations</h2>
+                
+                <div class="card">
+                    <div id="reservations-list" class="loading">
+                        <div class="spinner"></div>
                     </div>
                 </div>
-            </section>
-
-            <!-- Content Management Section -->
-            <section id="content" class="mb-8 hidden">
-                <div class="mb-8">
-                    <h1 class="text-3xl font-playfair font-bold text-primary mb-2">Gestion du Contenu</h1>
-                    <p class="text-text-secondary">Gérez les images, articles et contenu du site web</p>
-                </div>
-
-                <!-- Content Tabs -->
-                <div class="bg-white rounded-2xl shadow-card overflow-hidden mb-6">
-                    <div class="border-b border-primary-100">
-                        <nav class="flex space-x-8 px-6">
-                            <button class="py-4 border-b-2 border-secondary text-secondary font-medium">Galerie Photos</button>
-                            <button class="py-4 border-b-2 border-transparent text-text-secondary hover:text-primary">Articles Blog</button>
-                            <button class="py-4 border-b-2 border-transparent text-text-secondary hover:text-primary">Page d'Accueil</button>
-                        </nav>
-                    </div>
-
-                    <!-- Gallery Management -->
-                    <div class="p-6">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-lg font-playfair font-semibold text-primary">Galerie Photos</h3>
-                            <button class="bg-secondary text-white px-6 py-3 rounded-lg hover:bg-secondary-600 transition-colors shadow-button">
-                                <span class="flex items-center space-x-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                    </svg>
-                                    <span>Ajouter Photos</span>
-                                </span>
-                            </button>
-                        </div>
-
-                        <!-- Photo Grid -->
-                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                            <div class="relative group">
-                                <img src="https://images.unsplash.com/photo-1553842305-bec61cec1b24" 
-                                     alt="Photo du plat Griot Traditionnel pour la galerie" 
-                                     class="w-full h-32 object-cover rounded-lg"
-                                     onerror="this.src='https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=200'; this.onerror=null;">
-                                <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                    <div class="flex space-x-2">
-                                        <button class="p-2 bg-white rounded-full text-primary hover:bg-primary-50">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                            </svg>
-                                        </button>
-                                        <button class="p-2 bg-white rounded-full text-error hover:bg-error-50">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="relative group">
-                                <img src="https://images.unsplash.com/photo-1567745218138-668f4421a71f" 
-                                     alt="Photo du plat Poisson Rouge Grillé pour la galerie" 
-                                     class="w-full h-32 object-cover rounded-lg"
-                                     onerror="this.src='https://images.pixabay.com/photo/2017/01/11/11/33/cake-1971552_200.jpg'; this.onerror=null;">
-                                <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                    <div class="flex space-x-2">
-                                        <button class="p-2 bg-white rounded-full text-primary hover:bg-primary-50">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                            </svg>
-                                        </button>
-                                        <button class="p-2 bg-white rounded-full text-error hover:bg-error-50">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="relative group">
-                                <img src="https://images.unsplash.com/photo-1580565616406-5ea01cc65f04" 
-                                     alt="Photo de l'ambiance du restaurant pour la galerie" 
-                                     class="w-full h-32 object-cover rounded-lg"
-                                     onerror="this.src='https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg?auto=compress&cs=tinysrgb&w=200'; this.onerror=null;">
-                                <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                    <div class="flex space-x-2">
-                                        <button class="p-2 bg-white rounded-full text-primary hover:bg-primary-50">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                            </svg>
-                                        </button>
-                                        <button class="p-2 bg-white rounded-full text-error hover:bg-error-50">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="relative group">
-                                <img src="https://images.unsplash.com/photo-1529940316268-e245e031bcd1" 
-                                     alt="Photo du chef en cuisine pour la galerie" 
-                                     class="w-full h-32 object-cover rounded-lg"
-                                     onerror="this.src='https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg?auto=compress&cs=tinysrgb&w=200'; this.onerror=null;">
-                                <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                    <div class="flex space-x-2">
-                                        <button class="p-2 bg-white rounded-full text-primary hover:bg-primary-50">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                            </svg>
-                                        </button>
-                                        <button class="p-2 bg-white rounded-full text-error hover:bg-error-50">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Upload placeholder -->
-                            <div class="border-2 border-dashed border-primary-200 rounded-lg h-32 flex items-center justify-center hover:border-primary-400 transition-colors cursor-pointer">
-                                <div class="text-center">
-                                    <svg class="w-8 h-8 text-primary-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                    </svg>
-                                    <span class="text-sm text-primary-400">Ajouter</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Analytics Section -->
-            <section id="analytics" class="mb-8 hidden">
-                <div class="mb-8">
-                    <h1 class="text-3xl font-playfair font-bold text-primary mb-2">Analyses & Rapports</h1>
-                    <p class="text-text-secondary">Suivez les performances et tendances de votre restaurant</p>
-                </div>
-
-                <!-- Analytics Overview -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <!-- Revenue Chart -->
-                    <div class="bg-white p-6 rounded-2xl shadow-card">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-lg font-playfair font-semibold text-primary">Revenus Mensuels</h3>
-                            <select class="text-sm border border-primary-200 rounded-lg px-3 py-1">
-                                <option>6 derniers mois</option>
-                                <option>12 derniers mois</option>
-                            </select>
-                        </div>
-                        <div class="h-64 flex items-end justify-between space-x-3">
-                            <div class="flex flex-col items-center">
-                                <div class="w-12 bg-secondary h-40 rounded-t-lg mb-2"></div>
-                                <span class="text-xs text-text-secondary">Juin</span>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <div class="w-12 bg-secondary h-32 rounded-t-lg mb-2"></div>
-                                <span class="text-xs text-text-secondary">Juil</span>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <div class="w-12 bg-secondary h-48 rounded-t-lg mb-2"></div>
-                                <span class="text-xs text-text-secondary">Août</span>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <div class="w-12 bg-secondary h-36 rounded-t-lg mb-2"></div>
-                                <span class="text-xs text-text-secondary">Sept</span>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <div class="w-12 bg-secondary h-52 rounded-t-lg mb-2"></div>
-                                <span class="text-xs text-text-secondary">Oct</span>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <div class="w-12 bg-secondary h-44 rounded-t-lg mb-2"></div>
-                                <span class="text-xs text-text-secondary">Nov</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Popular Dishes -->
-                    <div class="bg-white p-6 rounded-2xl shadow-card">
-                        <h3 class="text-lg font-playfair font-semibold text-primary mb-6">Plats les Plus Populaires</h3>
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <img src="https://images.unsplash.com/photo-1446645681877-acde17e336a9" 
-                                         alt="Miniature du plat Griot Traditionnel" 
-                                         class="w-10 h-10 rounded-lg object-cover"
-                                         onerror="this.src='https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=40'; this.onerror=null;">
-                                    <div>
-                                        <div class="font-medium text-sm">Griot Traditionnel</div>
-                                        <div class="text-xs text-text-secondary">45 commandes</div>
-                                    </div>
-                                </div>
-                                <div class="w-20 bg-primary-100 rounded-full h-2">
-                                    <div class="w-4/5 bg-secondary h-2 rounded-full"></div>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <img src="https://images.unsplash.com/photo-1567745218138-668f4421a71f" 
-                                         alt="Miniature du plat Poisson Rouge Grillé" 
-                                         class="w-10 h-10 rounded-lg object-cover"
-                                         onerror="this.src='https://images.pixabay.com/photo/2017/01/11/11/33/cake-1971552_40.jpg'; this.onerror=null;">
-                                    <div>
-                                        <div class="font-medium text-sm">Poisson Rouge Grillé</div>
-                                        <div class="text-xs text-text-secondary">32 commandes</div>
-                                    </div>
-                                </div>
-                                <div class="w-20 bg-primary-100 rounded-full h-2">
-                                    <div class="w-3/5 bg-secondary h-2 rounded-full"></div>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <img src="https://images.unsplash.com/photo-1660046173823-56a806d759ba" 
-                                         alt="Miniature du plat Soupe Joumou" 
-                                         class="w-10 h-10 rounded-lg object-cover"
-                                         onerror="this.src='https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=40'; this.onerror=null;">
-                                    <div>
-                                        <div class="font-medium text-sm">Soupe Joumou</div>
-                                        <div class="text-xs text-text-secondary">28 commandes</div>
-                                    </div>
-                                </div>
-                                <div class="w-20 bg-primary-100 rounded-full h-2">
-                                    <div class="w-1/2 bg-secondary h-2 rounded-full"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Performance Metrics -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-card">
-                        <h4 class="font-medium text-text-secondary mb-4">Temps Moyen de Préparation</h4>
-                        <div class="text-3xl font-bold text-primary mb-2">22 min</div>
-                        <div class="text-sm text-success">-3 min vs mois dernier</div>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl shadow-card">
-                        <h4 class="font-medium text-text-secondary mb-4">Taux de Satisfaction</h4>
-                        <div class="text-3xl font-bold text-primary mb-2">96%</div>
-                        <div class="text-sm text-success">+2% vs mois dernier</div>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl shadow-card">
-                        <h4 class="font-medium text-text-secondary mb-4">Commandes Répétées</h4>
-                        <div class="text-3xl font-bold text-primary mb-2">68%</div>
-                        <div class="text-sm text-success">+5% vs mois dernier</div>
-                    </div>
-                </div>
-            </section>
+            </div>
         </main>
     </div>
 
-    <!-- JavaScript -->
-    <script>
-        // Navigation functionality
-        const navLinks = document.querySelectorAll('aside nav a[href^="#"]');
-        const sections = document.querySelectorAll('main section');
+    <!-- Menu Modal -->
+    <div id="menuModal" class="modal">
+        <div class="modal-content">
+            <div class="card-header">
+                <h3 class="card-title" id="menuModalTitle">Ajouter un Plat</h3>
+                <button onclick="closeMenuModal()" class="btn btn-sm" style="background: #e5e7eb; color: #374151;">
+                    Fermer
+                </button>
+            </div>
+            <form id="menuForm" onsubmit="saveMenuItem(event)">
+                <input type="hidden" id="menuItemId">
+                <div class="form-group">
+                    <label>Nom du Plat *</label>
+                    <input type="text" id="menuName" required>
+                </div>
+                <div class="form-group">
+                    <label>Description *</label>
+                    <textarea id="menuDescription" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Prix (HTG) *</label>
+                    <input type="number" id="menuPrice" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Catégorie *</label>
+                    <select id="menuCategory" required>
+                        <option value="">Sélectionner...</option>
+                        <option value="entrees">Entrées</option>
+                        <option value="plats">Plats Principaux</option>
+                        <option value="desserts">Desserts</option>
+                        <option value="boissons">Boissons</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Image du Plat</label>
+                    <input type="file" id="menuImage" accept="image/*" onchange="previewMenuImage(event)">
+                    <img id="menuImagePreview" class="image-preview" style="display: none;">
+                </div>
+                <div class="form-group">
+                    <label>Histoire Culturelle</label>
+                    <textarea id="menuStory"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Ingrédients (séparés par des virgules)</label>
+                    <input type="text" id="menuIngredients" placeholder="Ex: Porc, Épices, Riz">
+                </div>
+                <div class="form-group">
+                    <label>Régime Alimentaire</label>
+                    <select id="menuDietary">
+                        <option value="">Aucun</option>
+                        <option value="vegetarian">Végétarien</option>
+                        <option value="vegan">Végétalien</option>
+                        <option value="gluten-free">Sans Gluten</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Niveau d'Épices</label>
+                    <select id="menuSpice">
+                        <option value="mild">Doux</option>
+                        <option value="medium">Moyen</option>
+                        <option value="hot">Épicé</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="menuSignature">
+                        Plat Signature
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="menuAvailable" checked>
+                        Disponible
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Enregistrer
+                </button>
+            </form>
+        </div>
+    </div>
 
-        navLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetId = link.getAttribute('href').substring(1);
-                
-                // Hide all sections
-                sections.forEach(section => {
-                    section.classList.add('hidden');
-                });
-                
-                // Show target section
-                const targetSection = document.getElementById(targetId);
-                if (targetSection) {
-                    targetSection.classList.remove('hidden');
-                }
-                
-                // Update active nav
-                navLinks.forEach(navLink => {
-                    navLink.classList.remove('bg-primary', 'text-white');
-                    navLink.classList.add('text-text-primary', 'hover:bg-primary-50');
-                });
-                
-                link.classList.add('bg-primary', 'text-white');
-                link.classList.remove('text-text-primary', 'hover:bg-primary-50');
-            });
-        });
+    <!-- Gallery Modal -->
+    <div id="galleryModal" class="modal">
+        <div class="modal-content">
+            <div class="card-header">
+                <h3 class="card-title">Ajouter une Image</h3>
+                <button onclick="closeGalleryModal()" class="btn btn-sm" style="background: #e5e7eb; color: #374151;">
+                    Fermer
+                </button>
+            </div>
+            <form id="galleryForm" onsubmit="saveGalleryImage(event)">
+                <input type="hidden" id="galleryImageId">
+                <div class="form-group">
+                    <label>Titre *</label>
+                    <input type="text" id="galleryTitle" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="galleryDescription"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Catégorie *</label>
+                    <select id="galleryCategory" required>
+                        <option value="">Sélectionner...</option>
+                        <option value="food">Plats</option>
+                        <option value="atmosphere">Atmosphère</option>
+                        <option value="events">Événements</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Image *</label>
+                    <input type="file" id="galleryImage" accept="image/*" required onchange="previewGalleryImage(event)">
+                    <img id="galleryImagePreview" class="image-preview" style="display: none;">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="galleryActive" checked>
+                        Active
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Enregistrer
+                </button>
+            </form>
+        </div>
+    </div>
 
-        // Content tabs functionality
-        const contentTabs = document.querySelectorAll('#content nav button');
-        contentTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                contentTabs.forEach(t => {
-                    t.classList.remove('border-secondary', 'text-secondary');
-                    t.classList.add('border-transparent', 'text-text-secondary');
-                });
-                tab.classList.add('border-secondary', 'text-secondary');
-                tab.classList.remove('border-transparent', 'text-text-secondary');
-            });
-        });
+    <script type="module">
+        // Load Supabase config
+        const SUPABASE_URL = localStorage.getItem('SUPABASE_URL');
+        const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY');
 
-        // Order status updates
-        const statusButtons = document.querySelectorAll('#orders button');
-        statusButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                if (this.textContent.includes('Marquer')) {
-                    this.classList.add('opacity-50', 'cursor-not-allowed');
-                    this.disabled = true;
-                    
-                    // Simulate status update
-                    setTimeout(() => {
-                        this.textContent = 'Mis à jour';
-                        this.classList.remove('opacity-50', 'cursor-not-allowed');
-                        this.disabled = false;
-                    }, 2000);
-                }
-            });
-        });
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+            alert('Configuration Supabase manquante!');
+            window.location.href = '../supabase-config.html';
+        }
 
-        // Real-time updates simulation
-        function updateStats() {
-            const orderCount = document.querySelector('.text-2xl.font-bold.text-primary');
-            if (orderCount && orderCount.textContent === '24') {
-                const currentCount = parseInt(orderCount.textContent);
-                if (Math.random() > 0.7) {
-                    orderCount.textContent = (currentCount + 1).toString();
-                }
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        window.supabaseClient = supabase;
+
+        // Check authentication
+        checkAuth();
+
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'admin_login.html';
+                return;
             }
-        }
 
-        // Update stats every 30 seconds
-        setInterval(updateStats, 30000);
+            // Check if user is admin
+            const { data: adminData } = await supabase
+                .from('admin_users')
+                .select('*')
+                .eq('email', session.user.email)
+                .single();
 
-        // Photo upload simulation
-        const uploadPlaceholder = document.querySelector('.border-dashed');
-        if (uploadPlaceholder) {
-            uploadPlaceholder.addEventListener('click', () => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.multiple = true;
-                input.click();
-                
-                input.addEventListener('change', (e) => {
-                    if (e.target.files.length > 0) {
-                        alert(`${e.target.files.length} image(s) sélectionnée(s) pour upload`);
-                    }
-                });
-            });
-        }
-
-        // Search functionality
-        const searchInputs = document.querySelectorAll('input[type="text"]');
-        searchInputs.forEach(input => {
-            input.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                // Simulate search functionality
-                console.log('Recherche:', searchTerm);
-            });
-        });
-
-        // Notification handling
-        const notificationBtn = document.querySelector('button[class*="relative"]');
-        if (notificationBtn) {
-            notificationBtn.addEventListener('click', () => {
-                alert('3 nouvelles notifications:\n- Commande #25 reçue\n- Stock faible: Giraumon\n- Nouveau commentaire client');
-            });
-        }
-
-        // Auto-refresh for real-time data
-        function refreshData() {
-            // Simulate data refresh
-            console.log('Données actualisées:', new Date().toLocaleTimeString());
-        }
-
-        // Refresh every 2 minutes
-        setInterval(refreshData, 120000);
-
-        // Initialize with dashboard visible
-        document.addEventListener('DOMContentLoaded', () => {
-            const dashboardSection = document.getElementById('dashboard');
-            if (dashboardSection) {
-                dashboardSection.classList.remove('hidden');
+            if (!adminData) {
+                await supabase.auth.signOut();
+                window.location.href = 'admin_login.html';
+                return;
             }
-        });
+
+            document.getElementById('admin-name').textContent = adminData.full_name;
+            loadDashboard();
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            loadStats();
+            loadRecentOrders();
+            loadMenuItems();
+            loadGalleryImages();
+            loadOrders();
+            loadReservations();
+        }
+
+        async function loadStats() {
+            const [menuItems, galleryImages, orders, reservations] = await Promise.all([
+                supabase.from('menu_items').select('*', { count: 'exact', head: true }),
+                supabase.from('gallery_images').select('*', { count: 'exact', head: true }),
+                supabase.from('orders').select('*', { count: 'exact', head: true }),
+                supabase.from('reservations').select('*', { count: 'exact', head: true })
+            ]);
+
+            document.getElementById('stat-menu-items').textContent = menuItems.count || 0;
+            document.getElementById('stat-gallery-images').textContent = galleryImages.count || 0;
+            document.getElementById('stat-orders').textContent = orders.count || 0;
+            document.getElementById('stat-reservations').textContent = reservations.count || 0;
+        }
+
+        async function loadRecentOrders() {
+            const { data, error } = await supabase
+                .from('orders')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(5);
+
+            if (error) {
+                console.error('Error loading orders:', error);
+                return;
+            }
+
+            const container = document.getElementById('recent-orders-list');
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">Aucune commande récente</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Total</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(order => `
+                            <tr>
+                                <td>${order.customer_name}</td>
+                                <td>${order.total_amount} HTG</td>
+                                <td><span class="badge badge-${getStatusClass(order.status)}">${getStatusLabel(order.status)}</span></td>
+                                <td>${new Date(order.created_at).toLocaleDateString('fr-FR')}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Load menu items
+        async function loadMenuItems() {
+            const { data, error } = await supabase
+                .from('menu_items')
+                .select('*')
+                .order('category', { ascending: true });
+
+            if (error) {
+                console.error('Error loading menu items:', error);
+                return;
+            }
+
+            const container = document.getElementById('menu-list');
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">Aucun plat dans le menu</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Plat</th>
+                            <th>Catégorie</th>
+                            <th>Prix</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(item => `
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        ${item.image_url ? `<img src="${item.image_url}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 0.5rem;">` : ''}
+                                        <div>
+                                            <div style="font-weight: 600;">${item.name}</div>
+                                            <div style="font-size: 0.875rem; color: #6b7280;">${item.description.substring(0, 50)}...</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-info">${getCategoryLabel(item.category)}</span></td>
+                                <td>${item.price} HTG</td>
+                                <td><span class="badge badge-${item.is_available ? 'success' : 'error'}">${item.is_available ? 'Disponible' : 'Indisponible'}</span></td>
+                                <td>
+                                    <button onclick="editMenuItem('${item.id}')" class="btn btn-sm btn-primary">Modifier</button>
+                                    <button onclick="deleteMenuItem('${item.id}')" class="btn btn-sm btn-error">Supprimer</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Load gallery images
+        async function loadGalleryImages() {
+            const { data, error } = await supabase
+                .from('gallery_images')
+                .select('*')
+                .order('display_order', { ascending: true });
+
+            if (error) {
+                console.error('Error loading gallery:', error);
+                return;
+            }
+
+            const container = document.getElementById('gallery-list');
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">Aucune image dans la galerie</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="gallery-grid">
+                    ${data.map(image => `
+                        <div class="gallery-item">
+                            <img src="${image.image_url}" alt="${image.title}">
+                            <div class="gallery-item-actions">
+                                <button onclick="deleteGalleryImage('${image.id}')" class="btn btn-sm btn-error">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div style="padding: 0.75rem;">
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">${image.title}</div>
+                                <span class="badge badge-info">${getCategoryLabel(image.category)}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Load orders
+        async function loadOrders() {
+            const { data, error } = await supabase
+                .from('orders')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error loading orders:', error);
+                return;
+            }
+
+            const container = document.getElementById('orders-list');
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">Aucune commande</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Téléphone</th>
+                            <th>Total</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(order => `
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 600;">${order.customer_name}</div>
+                                    ${order.customer_email ? `<div style="font-size: 0.875rem; color: #6b7280;">${order.customer_email}</div>` : ''}
+                                </td>
+                                <td>${order.customer_phone}</td>
+                                <td style="font-weight: 600;">${order.total_amount} HTG</td>
+                                <td>
+                                    <select onchange="updateOrderStatus('${order.id}', this.value)" class="badge badge-${getStatusClass(order.status)}" style="border: none; cursor: pointer;">
+                                        <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>En attente</option>
+                                        <option value="preparing" ${order.status === 'preparing' ? 'selected' : ''}>En préparation</option>
+                                        <option value="delivery" ${order.status === 'delivery' ? 'selected' : ''}>En livraison</option>
+                                        <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Complété</option>
+                                        <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Annulé</option>
+                                    </select>
+                                </td>
+                                <td>${new Date(order.created_at).toLocaleString('fr-FR')}</td>
+                                <td>
+                                    <button onclick="viewOrderDetails('${order.id}')" class="btn btn-sm btn-primary">Détails</button>
+                                    <button onclick="deleteOrder('${order.id}')" class="btn btn-sm btn-error">Supprimer</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Load reservations
+        async function loadReservations() {
+            const { data, error } = await supabase
+                .from('reservations')
+                .select('*')
+                .order('reservation_date', { ascending: true });
+
+            if (error) {
+                console.error('Error loading reservations:', error);
+                return;
+            }
+
+            const container = document.getElementById('reservations-list');
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">Aucune réservation</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Téléphone</th>
+                            <th>Date & Heure</th>
+                            <th>Personnes</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(reservation => `
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 600;">${reservation.customer_name}</div>
+                                    ${reservation.customer_email ? `<div style="font-size: 0.875rem; color: #6b7280;">${reservation.customer_email}</div>` : ''}
+                                </td>
+                                <td>${reservation.customer_phone}</td>
+                                <td>
+                                    <div>${new Date(reservation.reservation_date).toLocaleDateString('fr-FR')}</div>
+                                    <div style="font-size: 0.875rem; color: #6b7280;">${reservation.reservation_time}</div>
+                                </td>
+                                <td>${reservation.number_of_guests} personnes</td>
+                                <td>
+                                    <select onchange="updateReservationStatus('${reservation.id}', this.value)" class="badge badge-${getStatusClass(reservation.status)}" style="border: none; cursor: pointer;">
+                                        <option value="pending" ${reservation.status === 'pending' ? 'selected' : ''}>En attente</option>
+                                        <option value="confirmed" ${reservation.status === 'confirmed' ? 'selected' : ''}>Confirmée</option>
+                                        <option value="completed" ${reservation.status === 'completed' ? 'selected' : ''}>Complétée</option>
+                                        <option value="cancelled" ${reservation.status === 'cancelled' ? 'selected' : ''}>Annulée</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <button onclick="deleteReservation('${reservation.id}')" class="btn btn-sm btn-error">Supprimer</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Global functions
+        window.showSection = function(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(sectionId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        };
+
+        window.logout = async function() {
+            await supabase.auth.signOut();
+            window.location.href = 'admin_login.html';
+        };
+
+        window.openMenuModal = function() {
+            document.getElementById('menuForm').reset();
+            document.getElementById('menuItemId').value = '';
+            document.getElementById('menuModalTitle').textContent = 'Ajouter un Plat';
+            document.getElementById('menuImagePreview').style.display = 'none';
+            document.getElementById('menuModal').classList.add('active');
+        };
+
+        window.closeMenuModal = function() {
+            document.getElementById('menuModal').classList.remove('active');
+        };
+
+        window.openGalleryModal = function() {
+            document.getElementById('galleryForm').reset();
+            document.getElementById('galleryImageId').value = '';
+            document.getElementById('galleryImagePreview').style.display = 'none';
+            document.getElementById('galleryModal').classList.add('active');
+        };
+
+        window.closeGalleryModal = function() {
+            document.getElementById('galleryModal').classList.remove('active');
+        };
+
+        window.previewMenuImage = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('menuImagePreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        window.previewGalleryImage = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('galleryImagePreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        window.saveMenuItem = async function(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('menuItemId').value;
+            const imageFile = document.getElementById('menuImage').files[0];
+            
+            let imageUrl = null;
+            if (imageFile) {
+                const fileExt = imageFile.name.split('.').pop();
+                const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+                
+                const { error: uploadError } = await supabase.storage
+                    .from('restaurant-images')
+                    .upload(fileName, imageFile);
+                
+                if (uploadError) {
+                    alert('Erreur lors du téléchargement de l\'image');
+                    return;
+                }
+                
+                const { data: urlData } = supabase.storage
+                    .from('restaurant-images')
+                    .getPublicUrl(fileName);
+                
+                imageUrl = urlData.publicUrl;
+            }
+            
+            const ingredientsText = document.getElementById('menuIngredients').value;
+            const ingredients = ingredientsText ? ingredientsText.split(',').map(i => i.trim()) : [];
+            
+            const menuData = {
+                name: document.getElementById('menuName').value,
+                description: document.getElementById('menuDescription').value,
+                price: parseFloat(document.getElementById('menuPrice').value),
+                category: document.getElementById('menuCategory').value,
+                cultural_story: document.getElementById('menuStory').value,
+                ingredients: ingredients,
+                dietary: document.getElementById('menuDietary').value,
+                spice_level: document.getElementById('menuSpice').value,
+                is_signature: document.getElementById('menuSignature').checked,
+                is_available: document.getElementById('menuAvailable').checked
+            };
+            
+            if (imageUrl) {
+                menuData.image_url = imageUrl;
+            }
+            
+            let result;
+            if (id) {
+                result = await supabase.from('menu_items').update(menuData).eq('id', id);
+            } else {
+                result = await supabase.from('menu_items').insert([menuData]);
+            }
+            
+            if (result.error) {
+                alert('Erreur lors de l\'enregistrement');
+                return;
+            }
+            
+            closeMenuModal();
+            loadMenuItems();
+            loadStats();
+        };
+
+        window.editMenuItem = async function(id) {
+            const { data, error } = await supabase
+                .from('menu_items')
+                .select('*')
+                .eq('id', id)
+                .single();
+            
+            if (error || !data) return;
+            
+            document.getElementById('menuItemId').value = data.id;
+            document.getElementById('menuName').value = data.name;
+            document.getElementById('menuDescription').value = data.description;
+            document.getElementById('menuPrice').value = data.price;
+            document.getElementById('menuCategory').value = data.category;
+            document.getElementById('menuStory').value = data.cultural_story || '';
+            document.getElementById('menuIngredients').value = data.ingredients ? data.ingredients.join(', ') : '';
+            document.getElementById('menuDietary').value = data.dietary || '';
+            document.getElementById('menuSpice').value = data.spice_level || 'mild';
+            document.getElementById('menuSignature').checked = data.is_signature || false;
+            document.getElementById('menuAvailable').checked = data.is_available;
+            
+            if (data.image_url) {
+                const preview = document.getElementById('menuImagePreview');
+                preview.src = data.image_url;
+                preview.style.display = 'block';
+            }
+            
+            document.getElementById('menuModalTitle').textContent = 'Modifier le Plat';
+            document.getElementById('menuModal').classList.add('active');
+        };
+
+        window.deleteMenuItem = async function(id) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer ce plat ?')) return;
+            
+            const { error } = await supabase.from('menu_items').delete().eq('id', id);
+            
+            if (error) {
+                alert('Erreur lors de la suppression');
+                return;
+            }
+            
+            loadMenuItems();
+            loadStats();
+        };
+
+        window.saveGalleryImage = async function(event) {
+            event.preventDefault();
+            
+            const imageFile = document.getElementById('galleryImage').files[0];
+            if (!imageFile) {
+                alert('Veuillez sélectionner une image');
+                return;
+            }
+            
+            const fileExt = imageFile.name.split('.').pop();
+            const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+            
+            const { error: uploadError } = await supabase.storage
+                .from('restaurant-images')
+                .upload(fileName, imageFile);
+            
+            if (uploadError) {
+                alert('Erreur lors du téléchargement de l\'image');
+                return;
+            }
+            
+            const { data: urlData } = supabase.storage
+                .from('restaurant-images')
+                .getPublicUrl(fileName);
+            
+            const galleryData = {
+                title: document.getElementById('galleryTitle').value,
+                description: document.getElementById('galleryDescription').value,
+                category: document.getElementById('galleryCategory').value,
+                image_url: urlData.publicUrl,
+                is_active: document.getElementById('galleryActive').checked
+            };
+            
+            const { error } = await supabase.from('gallery_images').insert([galleryData]);
+            
+            if (error) {
+                alert('Erreur lors de l\'enregistrement');
+                return;
+            }
+            
+            closeGalleryModal();
+            loadGalleryImages();
+            loadStats();
+        };
+
+        window.deleteGalleryImage = async function(id) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cette image ?')) return;
+            
+            const { error } = await supabase.from('gallery_images').delete().eq('id', id);
+            
+            if (error) {
+                alert('Erreur lors de la suppression');
+                return;
+            }
+            
+            loadGalleryImages();
+            loadStats();
+        };
+
+        window.updateOrderStatus = async function(id, status) {
+            const { error } = await supabase
+                .from('orders')
+                .update({ status })
+                .eq('id', id);
+            
+            if (error) {
+                alert('Erreur lors de la mise à jour');
+                return;
+            }
+            
+            loadOrders();
+            loadRecentOrders();
+        };
+
+        window.updateReservationStatus = async function(id, status) {
+            const { error } = await supabase
+                .from('reservations')
+                .update({ status })
+                .eq('id', id);
+            
+            if (error) {
+                alert('Erreur lors de la mise à jour');
+                return;
+            }
+            
+            loadReservations();
+        };
+
+        window.deleteOrder = async function(id) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cette commande ?')) return;
+            
+            const { error } = await supabase.from('orders').delete().eq('id', id);
+            
+            if (error) {
+                alert('Erreur lors de la suppression');
+                return;
+            }
+            
+            loadOrders();
+            loadStats();
+        };
+
+        window.deleteReservation = async function(id) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cette réservation ?')) return;
+            
+            const { error } = await supabase.from('reservations').delete().eq('id', id);
+            
+            if (error) {
+                alert('Erreur lors de la suppression');
+                return;
+            }
+            
+            loadReservations();
+            loadStats();
+        };
+
+        window.viewOrderDetails = async function(id) {
+            const { data } = await supabase.from('orders').select('*').eq('id', id).single();
+            if (data) {
+                alert(`Commande #${id}\n\nClient: ${data.customer_name}\nTéléphone: ${data.customer_phone}\nEmail: ${data.customer_email || 'N/A'}\nTotal: ${data.total_amount} HTG\nAdresse: ${data.delivery_address || 'N/A'}\nStatut: ${getStatusLabel(data.status)}\nNotes: ${data.notes || 'Aucune'}`);
+            }
+        };
+
+        // Helper functions
+        function getStatusClass(status) {
+            const classes = {
+                'pending': 'warning',
+                'preparing': 'info',
+                'delivery': 'info',
+                'confirmed': 'success',
+                'completed': 'success',
+                'cancelled': 'error'
+            };
+            return classes[status] || 'info';
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'pending': 'En attente',
+                'preparing': 'En préparation',
+                'delivery': 'En livraison',
+                'confirmed': 'Confirmée',
+                'completed': 'Complété',
+                'cancelled': 'Annulé'
+            };
+            return labels[status] || status;
+        }
+
+        function getCategoryLabel(category) {
+            const labels = {
+                'entrees': 'Entrées',
+                'plats': 'Plats',
+                'desserts': 'Desserts',
+                'boissons': 'Boissons',
+                'food': 'Plats',
+                'atmosphere': 'Atmosphère',
+                'events': 'Événements'
+            };
+            return labels[category] || category;
+        }
     </script>
-<script id="dhws-dataInjector" src="../public/dhws-data-injector.js"></script>
 </body>
 </html>
