@@ -1,35 +1,50 @@
-// Order System - Handle cart and order submission
+// Order System - Handle cart and order submission with MonCash payment proof
 (function() {
     'use strict';
 
     let supabaseClient = null;
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    let cart = [];
+    let paymentProofFile = null;
 
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
         initSupabase();
         setupOrderForm();
         displayCart();
+        setupPaymentProofUpload();
+        loadCartFromManager();
     });
 
     function initSupabase() {
-        const SUPABASE_URL = localStorage.getItem('SUPABASE_URL');
-        const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY');
+        // Utiliser Config.js
+        if (typeof window.Config !== 'undefined' && window.Config.Supabase) {
+            const config = window.Config.Supabase.get();
+            if (!config.url || !config.anonKey) {
+                console.warn('Supabase not configured');
+                return;
+            }
 
-        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-            console.warn('Supabase not configured');
-            return;
+            if (typeof window.supabase === 'undefined') {
+                console.error('Supabase library not loaded');
+                return;
+            }
+
+            try {
+                supabaseClient = window.supabase.createClient(config.url, config.anonKey);
+            } catch (error) {
+                console.error('Error initializing Supabase:', error);
+            }
         }
+    }
 
-        if (typeof window.supabase === 'undefined') {
-            console.error('Supabase library not loaded');
-            return;
-        }
-
-        try {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch (error) {
-            console.error('Error initializing Supabase:', error);
+    // Charger le panier depuis CartManager
+    function loadCartFromManager() {
+        if (window.CartManager) {
+            cart = window.CartManager.getCart();
+            displayCart();
+        } else {
+            // Fallback vers localStorage
+            cart = JSON.parse(localStorage.getItem('cart')) || [];
         }
     }
 
