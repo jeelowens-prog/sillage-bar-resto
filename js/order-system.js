@@ -10,9 +10,20 @@
     document.addEventListener('DOMContentLoaded', function() {
         initSupabase();
         setupOrderForm();
-        displayCart();
         setupPaymentProofUpload();
         loadCartFromManager();
+        
+        // Recharger le panier quand on revient sur la page
+        window.addEventListener('focus', function() {
+            loadCartFromManager();
+        });
+        
+        // Écouter les changements du panier
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'cart') {
+                loadCartFromManager();
+            }
+        });
     });
 
     function initSupabase() {
