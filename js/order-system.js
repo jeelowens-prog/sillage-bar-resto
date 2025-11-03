@@ -55,6 +55,13 @@
 
         if (!cartContainer) return;
 
+        // Utiliser CartManager si disponible
+        if (window.CartManager) {
+            window.CartManager.updateCartDisplay();
+            return;
+        }
+
+        // Fallback: affichage basique
         if (cart.length === 0) {
             cartContainer.innerHTML = '<p class="text-center text-gray-500 py-8">Votre panier est vide</p>';
             if (cartTotal) cartTotal.textContent = '0 HTG';
@@ -89,6 +96,94 @@
 
         if (cartTotal) cartTotal.textContent = `${total.toFixed(2)} HTG`;
         if (checkoutBtn) checkoutBtn.disabled = false;
+    }
+
+    // Setup payment proof upload
+    function setupPaymentProofUpload() {
+        const paymentProofInput = document.getElementById('payment-proof');
+        const paymentProofPreview = document.getElementById('payment-proof-preview');
+        const paymentProofImage = document.getElementById('payment-proof-image');
+        const removeProofBtn = document.getElementById('remove-payment-proof');
+
+        if (paymentProofInput) {
+            paymentProofInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // Vérifier le type de fichier
+                if (!file.type.startsWith('image/')) {
+                    alert('Veuillez sélectionner une image valide');
+                    return;
+                }
+
+                // Vérifier la taille (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('L\'image est trop grande. Maximum 5MB.');
+                    return;
+                }
+
+                paymentProofFile = file;
+
+                // Afficher la prévisualisation
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (paymentProofImage) {
+                        paymentProofImage.src = e.target.result;
+                    }
+                    if (paymentProofPreview) {
+                        paymentProofPreview.classList.remove('hidden');
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        if (removeProofBtn) {
+            removeProofBtn.addEventListener('click', function() {
+                paymentProofFile = null;
+                if (paymentProofInput) paymentProofInput.value = '';
+                if (paymentProofPreview) paymentProofPreview.classList.add('hidden');
+                if (paymentProofImage) paymentProofImage.src = '';
+            });
+        }
+    }
+
+    // Upload payment proof to Supabase Storage
+    async function uploadPaymentProof(orderId) {
+        if (!paymentProofFile || !supabaseClient) return null;
+
+        try {
+            const fileExt = paymentProofFile.name.split('.').pop();
+            const fileName = `payment-${orderId}-${Date.now()}.${fileExt}`;
+            const filePath = `proofs/${fileName}`;
+
+            // Créer le bucket s'il n'existe pas
+            const { data: buckets } = await supabaseClient.storage.listBuckets();
+            const paymentBucket = buckets?.find(b => b.name === 'payment-proofs');
+            
+            if (!paymentBucket) {
+                await supabaseClient.storage.createBucket('payment-proofs', {
+                    public: false // Privé pour la sécurité
+                });
+            }
+
+            // Upload le fichier
+            const { data, error } = await supabaseClient.storage
+                .from('payment-proofs')
+                .upload(filePath, paymentProofFile);
+
+            if (error) throw error;
+
+            // Obtenir l'URL
+            const { data: urlData } = supabaseClient.storage
+                .from('payment-proofs')
+                .getPublicUrl(filePath);
+
+            return urlData.publicUrl;
+        } catch (error) {
+            console.error('Error uploading payment proof:', error);
+            return null;
+        }
     }
 
     window.updateQuantity = function(index, change) {
