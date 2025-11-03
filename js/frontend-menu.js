@@ -289,6 +289,13 @@
 
     // Cart functions
     function addToCart(item) {
+        // Utiliser CartManager si disponible
+        if (window.CartManager) {
+            window.CartManager.addToCart(item);
+            return;
+        }
+
+        // Fallback: méthode simple
         const existingItem = cart.find(cartItem => cartItem.id === item.id);
         
         if (existingItem) {
