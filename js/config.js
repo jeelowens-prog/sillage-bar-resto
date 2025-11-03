@@ -11,8 +11,8 @@
         
         // Initialiser depuis localStorage
         init: function() {
-            this.url = localStorage.getItem('SUPABASE_URL');
-            this.anonKey = localStorage.getItem('SUPABASE_ANON_KEY');
+            this.url = 'https://yayoxqzxmijzipryevcr.supabase.co'
+            this.anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlheW94cXp4bWlqemlwcnlldmNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxNzY5ODIsImV4cCI6MjA3Nzc1Mjk4Mn0.WUT4oCXU_vbanm2sQPjBWxXfcPcllyKju2F_P3K1qqI';
             
             // Si pas configuré, rediriger vers la page de configuration
             if (!this.url || !this.anonKey) {
