@@ -13,21 +13,26 @@
     });
 
     function initSupabase() {
-        const SUPABASE_URL = localStorage.getItem('SUPABASE_URL');
-        const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY');
+        // Vérifier si la configuration Supabase est disponible
+        if (typeof window.Config === 'undefined' || !window.Config.Supabase) {
+            console.warn('Configuration Supabase non trouvée - utilisation du contenu statique');
+            return;
+        }
 
-        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-            console.warn('Supabase not configured - using static content');
+        // Vérifier si Supabase est correctement configuré
+        if (!window.Config.Supabase.isConfigured()) {
+            console.warn('Supabase non configuré - utilisation du contenu statique');
             return;
         }
 
         if (typeof window.supabase === 'undefined') {
-            console.error('Supabase library not loaded');
+            console.error('Bibliothèque Supabase non chargée');
             return;
         }
 
         try {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const config = window.Config.Supabase.get();
+            supabaseClient = window.supabase.createClient(config.url, config.anonKey);
             loadGalleryImages();
         } catch (error) {
             console.error('Error initializing Supabase:', error);
