@@ -98,6 +98,9 @@
         const cartTotal = document.getElementById('cart-total');
         const checkoutBtn = document.getElementById('checkout-btn');
 
+        // Toujours afficher le résumé s'il existe
+        displayCartSummary();
+
         if (!cartContainer) return;
 
         // Utiliser CartManager si disponible
