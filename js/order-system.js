@@ -41,11 +41,45 @@
     function loadCartFromManager() {
         if (window.CartManager) {
             cart = window.CartManager.getCart();
-            displayCart();
         } else {
             // Fallback vers localStorage
             cart = JSON.parse(localStorage.getItem('cart')) || [];
         }
+        displayCart();
+        displayCartSummary();
+    }
+
+    // Afficher le résumé du panier sur la page de commande
+    function displayCartSummary() {
+        const summaryContainer = document.getElementById('cart-items-summary');
+        const totalElement = document.getElementById('cart-total');
+
+        if (!summaryContainer) return;
+
+        if (cart.length === 0) {
+            summaryContainer.innerHTML = '<p class="text-gray-500 text-center py-4">Panier vide - <a href="interactive_menu.html" class="text-secondary hover:underline font-medium">Voir le menu</a></p>';
+            if (totalElement) totalElement.textContent = '0 HTG';
+            return;
+        }
+
+        let total = 0;
+        const itemsHTML = cart.map(item => {
+            const itemTotal = item.price * item.quantity;
+            total += itemTotal;
+
+            return `
+                <div class="flex items-center justify-between py-2 border-b border-gray-200">
+                    <div class="flex-1">
+                        <p class="font-medium text-gray-800">${item.name}</p>
+                        <p class="text-sm text-gray-600">${item.quantity} x ${item.price} HTG</p>
+                    </div>
+                    <p class="font-semibold text-gray-900">${itemTotal.toFixed(2)} HTG</p>
+                </div>
+            `;
+        }).join('');
+
+        summaryContainer.innerHTML = itemsHTML;
+        if (totalElement) totalElement.textContent = `${total.toFixed(2)} HTG`;
     }
 
     function displayCart() {
