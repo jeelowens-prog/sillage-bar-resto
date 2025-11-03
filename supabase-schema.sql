@@ -57,8 +57,9 @@ CREATE TABLE IF NOT EXISTS orders (
     items JSONB NOT NULL, -- [{name: 'Griot', price: 850, quantity: 1}]
     total_amount DECIMAL(10, 2) NOT NULL,
     delivery_address TEXT,
-    status VARCHAR(50) DEFAULT 'pending', -- pending, preparing, delivery, completed, cancelled
+    status VARCHAR(50) DEFAULT 'pending', -- pending, preparing, delivery, completed, cancelled, payment_pending
     payment_method VARCHAR(50) DEFAULT 'moncash',
+    payment_proof_url TEXT, -- URL of payment screenshot
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
