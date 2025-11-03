@@ -165,19 +165,35 @@
     </div>
 
     <script type="module">
-        // Load Supabase config from config.js
-        if (typeof window.Config === 'undefined' || !window.Config.Supabase.isConfigured()) {
-            showError('Configuration Supabase manquante. Veuillez configurer Supabase dans js/config.js');
-            console.error('Supabase configuration is missing in js/config.js');
+        // Wait for config.js to load
+        window.addEventListener('DOMContentLoaded', function() {
+            initLogin();
+        });
+
+        function initLogin() {
+            // Load Supabase config from config.js
+            if (typeof window.Config === 'undefined' || !window.Config.Supabase.isConfigured()) {
+                showError('Configuration Supabase manquante. Veuillez configurer Supabase dans js/config.js');
+                console.error('Supabase configuration is missing in js/config.js');
+                return;
+            }
+
+            // Initialize Supabase
+            const config = window.Config.Supabase.get();
+            const supabase = window.supabase.createClient(config.url, config.anonKey);
+            window.supabaseClient = supabase;
+
+            // Check if already logged in
+            checkAuth();
+
+            // Setup form submission
+            setupLoginForm();
         }
 
-        // Initialize Supabase
-        const supabase = window.supabase.createClient(window.Config.Supabase.url, window.Config.Supabase.anonKey);
-
-        // Check if already logged in
-        checkAuth();
-
         async function checkAuth() {
+            const supabase = window.supabaseClient;
+            if (!supabase) return;
+
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 // Check if user is admin
@@ -193,12 +209,19 @@
             }
         }
 
-        document.getElementById('login-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const submitBtn = document.getElementById('submit-btn');
+        function setupLoginForm() {
+            document.getElementById('login-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const supabase = window.supabaseClient;
+                if (!supabase) {
+                    showError('Configuration Supabase manquante');
+                    return;
+                }
+                
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const submitBtn = document.getElementById('submit-btn');
             
             // Show loading
             submitBtn.disabled = true;
