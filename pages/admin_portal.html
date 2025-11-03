@@ -1030,20 +1030,26 @@
                 const fileExt = imageFile.name.split('.').pop();
                 const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
                 
-                const { error: uploadError } = await supabase.storage
+                console.log('Tentative d\'upload de l\'image:', fileName);
+                
+                const { data: uploadData, error: uploadError } = await supabase.storage
                     .from('restaurant-images')
                     .upload(fileName, imageFile);
                 
                 if (uploadError) {
-                    alert('Erreur lors du téléchargement de l\'image');
+                    console.error('Erreur d\'upload:', uploadError);
+                    alert('Erreur lors du téléchargement de l\'image: ' + uploadError.message + '\n\nVérifiez que:\n1. Le bucket "restaurant-images" existe\n2. Le bucket est public\n3. Les politiques RLS sont configurées');
                     return;
                 }
+                
+                console.log('Upload réussi:', uploadData);
                 
                 const { data: urlData } = supabase.storage
                     .from('restaurant-images')
                     .getPublicUrl(fileName);
                 
                 imageUrl = urlData.publicUrl;
+                console.log('URL publique obtenue:', imageUrl);
             }
             
             const ingredientsText = document.getElementById('menuIngredients').value;
@@ -1066,6 +1072,8 @@
                 menuData.image_url = imageUrl;
             }
             
+            console.log('Données du plat à enregistrer:', menuData);
+            
             let result;
             if (id) {
                 result = await supabase.from('menu_items').update(menuData).eq('id', id);
@@ -1074,9 +1082,13 @@
             }
             
             if (result.error) {
-                alert('Erreur lors de l\'enregistrement');
+                console.error('Erreur d\'enregistrement:', result.error);
+                alert('Erreur lors de l\'enregistrement: ' + result.error.message + '\n\nVérifiez que:\n1. Les tables existent dans Supabase\n2. Les politiques RLS sont configurées\n3. Vous êtes bien connecté comme admin');
                 return;
             }
+            
+            console.log('Plat enregistré avec succès:', result.data);
+            alert('Plat enregistré avec succès!');
             
             closeMenuModal();
             loadMenuItems();
