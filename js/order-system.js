@@ -221,8 +221,13 @@
             e.preventDefault();
 
             if (!supabaseClient) {
-                alert('Configuration Supabase manquante. Veuillez configurer Supabase d\\'abord.');
+                alert('Configuration Supabase manquante. Veuillez configurer Supabase d\'abord.');
                 return;
+            }
+
+            // Récupérer le panier actuel
+            if (window.CartManager) {
+                cart = window.CartManager.getCart();
             }
 
             if (cart.length === 0) {
@@ -230,22 +235,45 @@
                 return;
             }
 
-            const formData = {
-                customer_name: document.getElementById('customer-name').value,
-                customer_email: document.getElementById('customer-email').value || null,
-                customer_phone: document.getElementById('customer-phone').value,
-                delivery_address: document.getElementById('delivery-address').value || null,
-                notes: document.getElementById('order-notes').value || null,
-                items: cart,
-                total_amount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-                status: 'pending',
-                payment_method: document.getElementById('payment-method').value || 'moncash'
-            };
+            // Vérifier si un screenshot de paiement est fourni
+            if (!paymentProofFile) {
+                const confirmNoProof = confirm('Aucune preuve de paiement fournie. Voulez-vous continuer quand même?');
+                if (!confirmNoProof) return;
+            }
+
+            const submitBtn = orderForm.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Envoi en cours...';
 
             try {
-                const submitBtn = orderForm.querySelector('button[type="submit"]');
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Envoi en cours...';
+                const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+                // Créer l'ID de commande d'abord
+                const orderId = `ORD-${Date.now()}`;
+
+                // Upload payment proof si disponible
+                let paymentProofUrl = null;
+                if (paymentProofFile) {
+                    submitBtn.textContent = 'Upload de la preuve...';
+                    paymentProofUrl = await uploadPaymentProof(orderId);
+                }
+
+                // Préparer les données de commande
+                const formData = {
+                    customer_name: document.getElementById('customer-name').value,
+                    customer_email: document.getElementById('customer-email')?.value || null,
+                    customer_phone: document.getElementById('customer-phone').value,
+                    delivery_address: document.getElementById('delivery-address')?.value || null,
+                    notes: document.getElementById('order-notes')?.value || null,
+                    items: cart,
+                    total_amount: total,
+                    status: paymentProofUrl ? 'pending' : 'payment_pending',
+                    payment_method: 'moncash',
+                    payment_proof_url: paymentProofUrl
+                };
+
+                submitBtn.textContent = 'Enregistrement...';
 
                 const { data, error } = await supabaseClient
                     .from('orders')
@@ -254,28 +282,37 @@
 
                 if (error) throw error;
 
-                // Clear cart
-                cart = [];
-                localStorage.setItem('cart', JSON.stringify(cart));
+                // Vider le panier
+                if (window.CartManager) {
+                    window.CartManager.clearCart();
+                } else {
+                    cart = [];
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                }
                 
-                // Show success message
-                alert('Commande envoyée avec succès! Nous vous contacterons bientôt.');
-                
-                // Reset form
+                // Réinitialiser le formulaire et l'upload
                 orderForm.reset();
+                paymentProofFile = null;
+                const paymentProofPreview = document.getElementById('payment-proof-preview');
+                if (paymentProofPreview) paymentProofPreview.classList.add('hidden');
+                
                 displayCart();
                 updateCartCount();
 
+                // Message de succès
+                alert(paymentProofUrl 
+                    ? 'Commande envoyée avec succès! Nous avons reçu votre preuve de paiement. Nous vous contacterons bientôt.' 
+                    : 'Commande enregistrée! Veuillez envoyer votre paiement MonCash et nous contacter avec la preuve.');
+
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Commander';
+                submitBtn.textContent = originalBtnText;
 
             } catch (error) {
                 console.error('Error submitting order:', error);
-                alert('Erreur lors de l\\'envoi de la commande. Veuillez réessayer.');
+                alert('Erreur lors de l\'envoi de la commande. Veuillez réessayer.');
                 
-                const submitBtn = orderForm.querySelector('button[type="submit"]');
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Commander';
+                submitBtn.textContent = originalBtnText;
             }
         });
     }
