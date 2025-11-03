@@ -71,12 +71,14 @@
       window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
     } else {
       // Redirect to config page if not configured
-      console.warn('Supabase not configured. Redirecting to configuration page...');
-      setTimeout(() => {
-        if (!window.location.pathname.includes('supabase-config')) {
-          window.location.href = 'supabase-config.html';
+      console.warn('Supabase not configured. Please check your configuration in js/config.js');
+      // La configuration est maintenant gérée directement dans js/config.js
+      // Vérifier la configuration après le chargement de config.js
+      document.addEventListener('DOMContentLoaded', function() {
+        if (typeof window.Config !== 'undefined' && !window.Config.Supabase.isConfigured()) {
+          console.error('Supabase configuration is missing in js/config.js');
         }
-      }, 3000);
+      });
     }
   </script>
   </head>

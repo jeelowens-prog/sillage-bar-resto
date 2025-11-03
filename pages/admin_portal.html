@@ -636,10 +636,11 @@
 
     <script src="../js/config.js"></script>
     <script type="module">
-        // Load Supabase config using Config.js
+        // Vérifier la configuration Supabase
         if (typeof window.Config === 'undefined' || !window.Config.Supabase.isConfigured()) {
-            alert('Configuration Supabase manquante!');
-            window.location.href = '../supabase-config.html';
+            alert('Configuration Supabase manquante dans js/config.js!');
+            console.error('Configuration Supabase manquante dans js/config.js');
+            // Ne pas rediriger, la configuration est maintenant gérée dans le fichier
         }
 
         const config = window.Config.Supabase.get();

@@ -1,38 +1,32 @@
 // Supabase Initialization Script
-// This script should be loaded in every page to initialize Supabase
+// This script should be loaded after config.js to initialize Supabase
 
 (function() {
     'use strict';
     
-    // Load configuration from localStorage
-    const SUPABASE_URL = localStorage.getItem('SUPABASE_URL');
-    const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY');
+    // Vérifier si la configuration est chargée
+    if (typeof window.Config === 'undefined' || !window.Config.Supabase) {
+        console.error('❌ Configuration Supabase non trouvée. Assurez-vous que config.js est chargé avant ce script.');
+        return;
+    }
     
-    // Set as window variables
-    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-        window.SUPABASE_URL = SUPABASE_URL;
-        window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
-        console.log('✅ Supabase configuration loaded');
+    // Initialiser la configuration
+    window.Config.Supabase.init();
+    
+    // Vérifier si la configuration est valide
+    if (window.Config.Supabase.isConfigured()) {
+        const config = window.Config.Supabase.get();
+        window.SUPABASE_URL = config.url;
+        window.SUPABASE_ANON_KEY = config.anonKey;
+        console.log('✅ Configuration Supabase chargée depuis config.js');
     } else {
-        console.warn('⚠️ Supabase configuration missing');
+        console.error('❌ Configuration Supabase manquante dans config.js');
         
-        // Don't redirect if we're already on config or login pages
+        // Ne pas rediriger si nous sommes déjà sur la page de connexion
         const currentPath = window.location.pathname;
-        if (!currentPath.includes('supabase-config') && 
-            !currentPath.includes('admin_login') &&
-            !currentPath.includes('index.html')) {
-            
-            const redirectTimer = setTimeout(() => {
-                const shouldRedirect = confirm(
-                    'Configuration Supabase manquante. Voulez-vous configurer maintenant?'
-                );
-                if (shouldRedirect) {
-                    window.location.href = '/supabase-config.html';
-                }
-            }, 2000);
-            
-            // Store timer ID to allow cancellation
-            window.supabaseRedirectTimer = redirectTimer;
+        if (!currentPath.includes('admin_login') && !currentPath.includes('index.html')) {
+            console.warn('Redirection vers la page de connexion...');
+            // La redirection sera gérée par la page de connexion
         }
     }
     

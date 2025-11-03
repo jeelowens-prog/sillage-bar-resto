@@ -164,19 +164,14 @@
     </div>
 
     <script type="module">
-        // Load Supabase config from localStorage
-        const SUPABASE_URL = localStorage.getItem('SUPABASE_URL');
-        const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY');
-
-        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-            showError('Configuration Supabase manquante. Veuillez configurer Supabase d\'abord.');
-            setTimeout(() => {
-                window.location.href = '../supabase-config.html';
-            }, 2000);
+        // Load Supabase config from config.js
+        if (typeof window.Config === 'undefined' || !window.Config.Supabase.isConfigured()) {
+            showError('Configuration Supabase manquante. Veuillez configurer Supabase dans js/config.js');
+            console.error('Supabase configuration is missing in js/config.js');
         }
 
         // Initialize Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabase = window.supabase.createClient(window.Config.Supabase.url, window.Config.Supabase.anonKey);
 
         // Check if already logged in
         checkAuth();
