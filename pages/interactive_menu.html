@@ -135,41 +135,41 @@
     </section>
 
     <!-- Search and Filters -->
-    <section class="py-8 bg-surface sticky top-20 z-40 border-b border-primary-100">
+    <section id="filters-section" class="py-3 bg-surface/95 backdrop-blur-sm transition-all duration-300 sticky top-20 z-40 border-b border-primary-100">
         <div class="container mx-auto px-4">
             <div class="flex flex-col lg:flex-row gap-4 items-center justify-between">
                 <!-- Search Bar -->
                 <div class="relative flex-1 max-w-md">
                     <input type="text" 
                            placeholder="Rechercher un plat..." 
-                           class="w-full pl-12 pr-4 py-3 rounded-full border border-primary-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                           class="w-full pl-10 pr-4 py-2 text-sm rounded-full border border-primary-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                            id="search-input">
-                    <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                 </div>
 
                 <!-- Filter Buttons -->
                 <div class="flex flex-wrap gap-2">
-                    <button class="filter-btn active px-4 py-2 rounded-full border border-primary text-primary bg-primary-50 hover:bg-primary hover:text-white transition-colors" data-filter="all">
+                    <button class="filter-btn active px-3 py-1.5 text-sm rounded-full border border-primary text-primary bg-primary-50 hover:bg-primary hover:text-white transition-colors" data-filter="all">
                         Tous
                     </button>
-                    <button class="filter-btn px-4 py-2 rounded-full border border-primary-200 text-text-secondary hover:border-primary hover:text-primary transition-colors" data-filter="entrees">
+                    <button class="filter-btn px-3 py-1.5 text-sm rounded-full border border-primary-200 text-text-secondary hover:border-primary hover:text-primary transition-colors" data-filter="entrees">
                         Entrées
                     </button>
-                    <button class="filter-btn px-4 py-2 rounded-full border border-primary-200 text-text-secondary hover:border-primary hover:text-primary transition-colors" data-filter="plats">
+                    <button class="filter-btn px-3 py-1.5 text-sm rounded-full border border-primary-200 text-text-secondary hover:border-primary hover:text-primary transition-colors" data-filter="plats">
                         Plats Principaux
                     </button>
-                    <button class="filter-btn px-4 py-2 rounded-full border border-primary-200 text-text-secondary hover:border-primary hover:text-primary transition-colors" data-filter="desserts">
+                    <button class="filter-btn px-3 py-1.5 text-sm rounded-full border border-primary-200 text-text-secondary hover:border-primary hover:text-primary transition-colors" data-filter="desserts">
                         Desserts
                     </button>
-                    <button class="filter-btn px-4 py-2 rounded-full border border-primary-200 text-text-secondary hover:border-primary hover:text-primary transition-colors" data-filter="boissons">
+                    <button class="filter-btn px-3 py-1.5 text-sm rounded-full border border-primary-200 text-text-secondary hover:border-primary hover:text-primary transition-colors" data-filter="boissons">
                         Boissons
                     </button>
                 </div>
 
                 <!-- Advanced Filters Toggle -->
-                <button class="flex items-center space-x-2 px-4 py-2 rounded-full border border-primary-200 text-text-secondary hover:border-primary hover:text-primary transition-colors" id="advanced-filters-btn">
+                <button class="flex items-center space-x-1.5 px-3 py-1.5 text-sm rounded-full border border-primary-200 text-text-secondary hover:border-primary hover:text-primary transition-colors" id="advanced-filters-btn">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z"></path>
                     </svg>
@@ -177,7 +177,7 @@
                 </button>
 
                 <!-- Reset Filters -->
-                <button class="px-4 py-2 rounded-full text-text-secondary hover:text-primary transition-colors" id="reset-filters">
+                <button class="p-1.5 rounded-full text-text-secondary hover:text-primary transition-colors" id="reset-filters" title="Réinitialiser les filtres">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
@@ -333,7 +333,7 @@
                     <div class="menu-item bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-300 transform hover:-translate-y-2" 
                          data-category="entrees" data-dietary="" data-spice="medium" data-price="low" data-allergen="">
                         <div class="relative overflow-hidden h-64">
-                            <img src="https://images.unsplash.com/photo-1534596382981-1974b10d4e1a" 
+                            <img src="https://images.unsplash.com/photo-1534596382981-aae548629ee3" 
                                  alt="Soupe joumou haïtienne traditionnelle avec giraumon, légumes et viande, symbole de liberté" 
                                  class="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                                  onerror="this.src='https://images.pixabay.com/photo/2017/06/01/18/46/cooking-2366153_1280.jpg'; this.onerror=null;">
@@ -482,7 +482,7 @@
                             <div class="flex items-center justify-between">
                                 <span class="text-2xl font-bold text-secondary">850 HTG</span>
                                 <button class="add-to-cart bg-primary text-white px-4 py-2 rounded-full hover:bg-primary-600 transition-colors"
-                                        data-name="Griot Traditionnel" data-price="850" data-image="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?q=80&w=300">
+                                        data-name="Griot Traditionnel" data-price="850" data-image="https://images.unsplash.com/photo-1565299624946-b28f40a31696?q=80&w=300">
                                     Ajouter
                                 </button>
                             </div>
@@ -524,7 +524,7 @@
                             <div class="flex items-center justify-between">
                                 <span class="text-2xl font-bold text-secondary">950 HTG</span>
                                 <button class="add-to-cart bg-primary text-white px-4 py-2 rounded-full hover:bg-primary-600 transition-colors"
-                                        data-name="Poisson Rouge Grillé" data-price="950" data-image="https://images.unsplash.com/photo-1551218808-94e220e084d2?q=80&w=300">
+                                        data-name="Poisson Rouge Grillé" data-price="950" data-image="https://images.unsplash.com/photo-1551218808-315724a31696?q=80&w=300">
                                     Ajouter
                                 </button>
                             </div>
@@ -636,7 +636,7 @@
                             <div class="flex items-center justify-between">
                                 <span class="text-2xl font-bold text-secondary">300 HTG</span>
                                 <button class="add-to-cart bg-primary text-white px-4 py-2 rounded-full hover:bg-primary-600 transition-colors"
-                                        data-name="Douce Macoss" data-price="300" data-image="https://images.unsplash.com/photo-1488477181946-6428a0291777?q=80&w=300">
+                                        data-name="Douce Macoss" data-price="300" data-image="https://images.unsplash.com/photo-1488477181946-f438129a2166?q=80&w=300">
                                     Ajouter
                                 </button>
                             </div>
@@ -662,7 +662,7 @@
                             <div class="flex items-center justify-between">
                                 <span class="text-2xl font-bold text-secondary">250 HTG</span>
                                 <button class="add-to-cart bg-primary text-white px-4 py-2 rounded-full hover:bg-primary-600 transition-colors"
-                                        data-name="Tablet Coconut" data-price="250" data-image="https://images.unsplash.com/photo-1587736797134-c8b6b7b8b6b6?q=80&w=300">
+                                        data-name="Tablet Coconut" data-price="250" data-image="https://images.unsplash.com/photo-1587736797134-c8b6b7b6b6b6?q=80&w=300">
                                     Ajouter
                                 </button>
                             </div>
@@ -940,7 +940,7 @@
             <!-- Bottom Bar -->
             <div class="border-t border-primary-800 pt-8 flex flex-col md:flex-row justify-between items-center">
                 <p class="text-primary-300 text-sm mb-4 md:mb-0">
-                    © 2025 Le Sillage Bar Restaurant. Tous droits réservés.
+                    2025 Le Sillage Bar Restaurant. Tous droits réservés.
                 </p>
                 <div class="flex space-x-6 text-sm">
                     <a href="javascript:void(0)" class="text-primary-300 hover:text-accent transition-colors">Politique de Confidentialité</a>
@@ -953,6 +953,26 @@
 
     <!-- JavaScript -->
     <script>
+        // Gestion de l'effet de transparence au scroll
+        const filtersSection = document.getElementById('filters-section');
+        let lastScrollTop = 0;
+
+        window.addEventListener('scroll', function() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // Réduire la hauteur et ajouter un effet de flou au scroll vers le bas
+            if (scrollTop > lastScrollTop) {
+                // Scroll vers le bas
+                filtersSection.classList.add('py-1.5', 'shadow-md');
+                filtersSection.classList.remove('py-3');
+            } else {
+                // Scroll vers le haut
+                filtersSection.classList.remove('py-1.5', 'shadow-md');
+                filtersSection.classList.add('py-3');
+            }
+            
+            lastScrollTop = scrollTop;
+        });
         // Cart functionality
         let cart = [];
         let cartTotal = 0;
