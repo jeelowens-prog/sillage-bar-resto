@@ -305,6 +305,11 @@
                 if (paymentProofFile) {
                     submitBtn.textContent = 'Upload de la preuve...';
                     paymentProofUrl = await uploadPaymentProof(orderId);
+                    if (paymentProofUrl) {
+                        console.log('Preuve de paiement uploadée:', paymentProofUrl);
+                    } else {
+                        console.warn('Échec de l\'upload de la preuve de paiement');
+                    }
                 }
 
                 // Préparer les données de commande
@@ -321,6 +326,8 @@
                     payment_proof_url: paymentProofUrl
                 };
 
+                console.log('Données de commande à envoyer:', formData);
+
                 submitBtn.textContent = 'Enregistrement...';
 
                 const { data, error } = await supabaseClient
@@ -328,7 +335,12 @@
                     .insert([formData])
                     .select();
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Erreur d\'insertion de commande:', error);
+                    throw new Error(error.message + '\n\nVérifiez que:\n1. La table "orders" existe\n2. Les politiques RLS permettent les insertions publiques\n3. Tous les champs requis sont remplis');
+                }
+
+                console.log('Commande enregistrée avec succès:', data);
 
                 // Vider le panier
                 if (window.CartManager) {
@@ -356,8 +368,8 @@
                 submitBtn.textContent = originalBtnText;
 
             } catch (error) {
-                console.error('Error submitting order:', error);
-                alert('Erreur lors de l\'envoi de la commande. Veuillez réessayer.');
+                console.error('Erreur lors de l\'envoi de la commande:', error);
+                alert('Erreur lors de l\'envoi de la commande: ' + error.message);
                 
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalBtnText;
