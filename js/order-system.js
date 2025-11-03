@@ -1,0 +1,179 @@
+// Order System - Handle cart and order submission
+(function() {
+    'use strict';
+
+    let supabaseClient = null;
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        initSupabase();
+        setupOrderForm();
+        displayCart();
+    });
+
+    function initSupabase() {
+        const SUPABASE_URL = localStorage.getItem('SUPABASE_URL');
+        const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY');
+
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+            console.warn('Supabase not configured');
+            return;
+        }
+
+        if (typeof window.supabase === 'undefined') {
+            console.error('Supabase library not loaded');
+            return;
+        }
+
+        try {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (error) {
+            console.error('Error initializing Supabase:', error);
+        }
+    }
+
+    function displayCart() {
+        const cartContainer = document.getElementById('cart-items');
+        const cartTotal = document.getElementById('cart-total');
+        const checkoutBtn = document.getElementById('checkout-btn');
+
+        if (!cartContainer) return;
+
+        if (cart.length === 0) {
+            cartContainer.innerHTML = '<p class="text-center text-gray-500 py-8">Votre panier est vide</p>';
+            if (cartTotal) cartTotal.textContent = '0 HTG';
+            if (checkoutBtn) checkoutBtn.disabled = true;
+            return;
+        }
+
+        let total = 0;
+        cartContainer.innerHTML = cart.map((item, index) => {
+            const itemTotal = item.price * item.quantity;
+            total += itemTotal;
+
+            return `
+                <div class="flex items-center gap-4 p-4 bg-white rounded-lg shadow">
+                    ${item.image ? `<img src="${item.image}" alt="${item.name}" class="w-20 h-20 object-cover rounded">` : ''}
+                    <div class="flex-1">
+                        <h4 class="font-bold text-primary">${item.name}</h4>
+                        <p class="text-sm text-gray-600">${item.price} HTG</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="updateQuantity(${index}, -1)" class="bg-gray-200 px-2 py-1 rounded">-</button>
+                        <span class="px-4">${item.quantity}</span>
+                        <button onclick="updateQuantity(${index}, 1)" class="bg-gray-200 px-2 py-1 rounded">+</button>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold">${itemTotal} HTG</div>
+                        <button onclick="removeFromCart(${index})" class="text-red-500 text-sm">Supprimer</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if (cartTotal) cartTotal.textContent = `${total.toFixed(2)} HTG`;
+        if (checkoutBtn) checkoutBtn.disabled = false;
+    }
+
+    window.updateQuantity = function(index, change) {
+        if (cart[index]) {
+            cart[index].quantity += change;
+            if (cart[index].quantity <= 0) {
+                cart.splice(index, 1);
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            displayCart();
+            updateCartCount();
+        }
+    };
+
+    window.removeFromCart = function(index) {
+        cart.splice(index, 1);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        displayCart();
+        updateCartCount();
+    };
+
+    function updateCartCount() {
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const cartCountElements = document.querySelectorAll('#cart-count, #mobile-cart-count');
+        cartCountElements.forEach(el => {
+            if (el) el.textContent = totalItems;
+        });
+    }
+
+    function setupOrderForm() {
+        const orderForm = document.getElementById('order-form');
+        if (!orderForm) return;
+
+        orderForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (!supabaseClient) {
+                alert('Configuration Supabase manquante. Veuillez configurer Supabase d\\'abord.');
+                return;
+            }
+
+            if (cart.length === 0) {
+                alert('Votre panier est vide');
+                return;
+            }
+
+            const formData = {
+                customer_name: document.getElementById('customer-name').value,
+                customer_email: document.getElementById('customer-email').value || null,
+                customer_phone: document.getElementById('customer-phone').value,
+                delivery_address: document.getElementById('delivery-address').value || null,
+                notes: document.getElementById('order-notes').value || null,
+                items: cart,
+                total_amount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                status: 'pending',
+                payment_method: document.getElementById('payment-method').value || 'moncash'
+            };
+
+            try {
+                const submitBtn = orderForm.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Envoi en cours...';
+
+                const { data, error } = await supabaseClient
+                    .from('orders')
+                    .insert([formData])
+                    .select();
+
+                if (error) throw error;
+
+                // Clear cart
+                cart = [];
+                localStorage.setItem('cart', JSON.stringify(cart));
+                
+                // Show success message
+                alert('Commande envoyée avec succès! Nous vous contacterons bientôt.');
+                
+                // Reset form
+                orderForm.reset();
+                displayCart();
+                updateCartCount();
+
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Commander';
+
+            } catch (error) {
+                console.error('Error submitting order:', error);
+                alert('Erreur lors de l\\'envoi de la commande. Veuillez réessayer.');
+                
+                const submitBtn = orderForm.querySelector('button[type="submit"]');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Commander';
+            }
+        });
+    }
+
+    // Export functions
+    window.orderSystem = {
+        displayCart,
+        cart
+    };
+
+})();
