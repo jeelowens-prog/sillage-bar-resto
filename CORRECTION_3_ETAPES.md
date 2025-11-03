@@ -81,7 +81,8 @@
 2. Ajoutez des plats au panier
 3. Allez à la page de commande
 4. Remplissez le formulaire
-5. Soumettez
+5. **Optionnel:** Uploadez une preuve de paiement MonCash
+6. Soumettez
 
 ### Résultat attendu:
 ✅ Message: "Commande envoyée avec succès!"
@@ -89,10 +90,17 @@
 ### Vérification:
 1. Dans l'admin, allez dans **Commandes**
 2. Vous devez voir la nouvelle commande
+3. Si vous avez uploadé une preuve, elle doit être visible
 
 ---
 
 ## ❌ Si ça ne marche TOUJOURS pas
+
+### Erreur: "payment_proof_url column not found"
+**Solution:**
+1. Vous avez oublié l'ÉTAPE 1B
+2. Retournez et exécutez **`FIX_COLONNE_PAYMENT_PROOF.sql`**
+3. Retestez
 
 ### Pour l'admin_login.html:
 Si la page dit "Cannot read properties of undefined":
