@@ -1,0 +1,148 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Primary Colors */
+  --color-primary: #1B4B5A; /* Deep Caribbean authority */
+  --color-primary-50: #F0F4F5;
+  --color-primary-100: #D6E3E6;
+  --color-primary-200: #ADC7CD;
+  --color-primary-300: #84ABB4;
+  --color-primary-400: #5B8F9B;
+  --color-primary-500: #1B4B5A; /* Primary */
+  --color-primary-600: #164248;
+  --color-primary-700: #113236;
+  --color-primary-800: #0C2124;
+  --color-primary-900: #071112;
+
+  /* Secondary Colors */
+  --color-secondary: #D4772B; /* Sunset warmth */
+  --color-secondary-50: #FDF5F0;
+  --color-secondary-100: #F9E6D6;
+  --color-secondary-200: #F3CDAD;
+  --color-secondary-300: #EDB484;
+  --color-secondary-400: #E79B5B;
+  --color-secondary-500: #D4772B; /* Secondary */
+  --color-secondary-600: #B86324;
+  --color-secondary-700: #9C4F1D;
+  --color-secondary-800: #803B16;
+  --color-secondary-900: #64270F;
+
+  /* Accent Colors */
+  --color-accent: #E8B931; /* Golden highlights */
+  --color-accent-50: #FEFBF2;
+  --color-accent-100: #FDF4D9;
+  --color-accent-200: #FBE9B3;
+  --color-accent-300: #F9DE8D;
+  --color-accent-400: #F7D367;
+  --color-accent-500: #E8B931; /* Accent */
+  --color-accent-600: #D4A52A;
+  --color-accent-700: #C09123;
+  --color-accent-800: #AC7D1C;
+  --color-accent-900: #986915;
+
+  /* Background Colors */
+  --color-background: #FEFCF8; /* Warm canvas */
+  --color-surface: #F5F2ED; /* Subtle depth */
+
+  /* Text Colors */
+  --color-text-primary: #2C3E35; /* Extended reading */
+  --color-text-secondary: #6B7B73; /* Clear hierarchy */
+
+  /* Status Colors */
+  --color-success: #4A7C59; /* Order confirmation */
+  --color-success-50: #F2F7F4;
+  --color-success-100: #D9E8DD;
+  --color-success-200: #B3D1BB;
+  --color-success-300: #8DBA99;
+  --color-success-400: #67A377;
+  --color-success-500: #4A7C59; /* Success */
+  --color-success-600: #3F6A4C;
+  --color-success-700: #34583F;
+  --color-success-800: #294632;
+  --color-success-900: #1E3425;
+
+  --color-warning: #B8860B; /* Inventory alerts */
+  --color-warning-50: #FDFAF0;
+  --color-warning-100: #F9F0D1;
+  --color-warning-200: #F3E1A3;
+  --color-warning-300: #EDD275;
+  --color-warning-400: #E7C347;
+  --color-warning-500: #B8860B; /* Warning */
+  --color-warning-600: #A0750A;
+  --color-warning-700: #886408;
+  --color-warning-800: #705307;
+  --color-warning-900: #584205;
+
+  --color-error: #A0522D; /* Gentle correction */
+  --color-error-50: #FAF4F1;
+  --color-error-100: #F1E0D6;
+  --color-error-200: #E3C1AD;
+  --color-error-300: #D5A284;
+  --color-error-400: #C7835B;
+  --color-error-500: #A0522D; /* Error */
+  --color-error-600: #8A4627;
+  --color-error-700: #743A21;
+  --color-error-800: #5E2E1B;
+  --color-error-900: #482215;
+
+  /* Shadows */
+  --shadow-card: 0 4px 12px rgba(27, 75, 90, 0.1);
+  --shadow-button: 0 2px 8px rgba(27, 75, 90, 0.15);
+  --shadow-hover: 0 6px 16px rgba(27, 75, 90, 0.12);
+
+  /* Transitions */
+  --transition-default: 300ms ease-out;
+  --transition-page: 400ms ease-out;
+}
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+  }
+
+  .font-accent {
+    font-family: 'Dancing Script', cursive;
+  }
+}
+
+@layer components {
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-button {
+    box-shadow: var(--shadow-button);
+  }
+
+  .shadow-hover {
+    box-shadow: var(--shadow-hover);
+  }
+
+  .transition-default {
+    transition: all var(--transition-default);
+  }
+
+  .transition-page {
+    transition: all var(--transition-page);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
