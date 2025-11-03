@@ -62,14 +62,7 @@
         // Boutons "Ajouter au panier" sur la page
         setupAddToCartButtons();
 
-        // Menu mobile toggle
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
-        if (mobileMenuBtn && mobileMenu) {
-            mobileMenuBtn.addEventListener('click', function() {
-                mobileMenu.classList.toggle('hidden');
-            });
-        }
+        // La logique du menu mobile est gérée par mobile-menu.js
     }
 
     // Configuration des boutons "Ajouter au panier"

@@ -732,33 +732,13 @@
             <img src="" alt="" class="max-w-full max-h-full object-contain" id="modal-image">
             <div class="absolute bottom-4 left-4 right-4 text-white text-center" id="modal-caption">
                 <h3 class="text-xl font-playfair font-bold mb-2"></h3>
-                <p class="text-sm"></p>
             </div>
         </div>
     </div>
 
     <!-- JavaScript -->
+    <script src="../js/mobile-menu.js"></script>
     <script>
-        // Mobile menu toggle
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
-
-        mobileMenuBtn.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-        });
-
-        // Navbar scroll effect
-        window.addEventListener('scroll', () => {
-            const navbar = document.getElementById('navbar');
-            if (window.scrollY > 100) {
-                navbar.classList.add('bg-background/98', 'shadow-card');
-                navbar.classList.remove('bg-background/95');
-            } else {
-                navbar.classList.add('bg-background/95');
-                navbar.classList.remove('bg-background/98', 'shadow-card');
-            }
-        });
-
         // Gallery filtering
         const filterButtons = document.querySelectorAll('.gallery-filter');
         const galleryItems = document.querySelectorAll('.gallery-item');
