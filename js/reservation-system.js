@@ -89,7 +89,7 @@
                 console.error('Error submitting reservation:', error);
                 showErrorMessage(
                     'Erreur',
-                    'Une erreur est survenue lors de l\\'envoi de votre réservation. Veuillez réessayer ou nous contacter directement.'
+                    'Une erreur est survenue lors de l\'envoi de votre réservation. Veuillez réessayer ou nous contacter directement.'
                 );
                 
                 const submitBtn = reservationForm.querySelector('button[type="submit"]');

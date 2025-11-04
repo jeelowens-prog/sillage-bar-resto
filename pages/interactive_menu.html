@@ -1077,6 +1077,14 @@
             cartCount.textContent = totalItems;
             mobileCartCount.textContent = totalItems;
             
+            // Persist cart to localStorage so other pages (ex: contact.html) peuvent lire le panier
+            try {
+                localStorage.setItem('cart', JSON.stringify(cart));
+                localStorage.setItem('cartTotal', cartTotal.toString());
+            } catch (e) {
+                console.warn('Impossible de sauvegarder le panier dans localStorage', e);
+            }
+
             // Update cart total
             cartTotalElement.textContent = cartTotal.toLocaleString() + ' HTG';
             
