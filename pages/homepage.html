@@ -491,6 +491,115 @@
         </div>
     </footer>
 
+    <!-- Modal pour laisser un avis -->
+    <div id="review-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <!-- Header -->
+            <div class="bg-primary text-white p-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-2xl font-playfair font-bold">Partagez Votre Expérience</h3>
+                    <button id="close-review-modal" class="text-white hover:text-accent transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <p class="text-primary-200 mt-2">Votre avis nous aide à améliorer notre service</p>
+            </div>
+
+            <!-- Formulaire -->
+            <form id="review-form" class="p-6 space-y-6">
+                <!-- Nom -->
+                <div>
+                    <label for="customer_name" class="block text-sm font-medium text-gray-700 mb-2">
+                        Votre Nom <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="customer_name" 
+                        name="customer_name" 
+                        required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                        placeholder="Ex: Marie Dupont">
+                </div>
+
+                <!-- Rôle/Titre (Optionnel) -->
+                <div>
+                    <label for="customer_role" class="block text-sm font-medium text-gray-700 mb-2">
+                        Votre Titre (Optionnel)
+                    </label>
+                    <input 
+                        type="text" 
+                        id="customer_role" 
+                        name="customer_role" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                        placeholder="Ex: Cliente régulière, Critique culinaire, etc.">
+                </div>
+
+                <!-- Note avec étoiles -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Votre Note <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex items-center space-x-2">
+                        <div class="flex space-x-1 text-3xl">
+                            <button type="button" class="rating-star text-gray-400 hover:text-accent transition-colors cursor-pointer">★</button>
+                            <button type="button" class="rating-star text-gray-400 hover:text-accent transition-colors cursor-pointer">★</button>
+                            <button type="button" class="rating-star text-gray-400 hover:text-accent transition-colors cursor-pointer">★</button>
+                            <button type="button" class="rating-star text-gray-400 hover:text-accent transition-colors cursor-pointer">★</button>
+                            <button type="button" class="rating-star text-gray-400 hover:text-accent transition-colors cursor-pointer">★</button>
+                        </div>
+                        <span class="text-sm text-gray-500 ml-3">Cliquez sur les étoiles</span>
+                    </div>
+                    <input type="hidden" id="rating" name="rating" required value="">
+                </div>
+
+                <!-- Commentaire -->
+                <div>
+                    <label for="comment" class="block text-sm font-medium text-gray-700 mb-2">
+                        Votre Avis <span class="text-red-500">*</span>
+                    </label>
+                    <textarea 
+                        id="comment" 
+                        name="comment" 
+                        required
+                        rows="4"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
+                        placeholder="Partagez votre expérience avec nous..."></textarea>
+                </div>
+
+                <!-- URL de la photo de profil (Optionnel) -->
+                <div>
+                    <label for="profile_image_url" class="block text-sm font-medium text-gray-700 mb-2">
+                        URL de votre Photo (Optionnel)
+                    </label>
+                    <input 
+                        type="url" 
+                        id="profile_image_url" 
+                        name="profile_image_url" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                        placeholder="https://exemple.com/votre-photo.jpg">
+                    <p class="text-xs text-gray-500 mt-1">Si vous ne fournissez pas de photo, un avatar par défaut sera utilisé</p>
+                </div>
+
+                <!-- Boutons -->
+                <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                    <button 
+                        type="submit" 
+                        class="flex-1 bg-secondary hover:bg-secondary-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 shadow-button">
+                        Publier mon Avis
+                    </button>
+                    <button 
+                        type="button" 
+                        id="close-review-modal-btn"
+                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium transition-all duration-300">
+                        Annuler
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- JavaScript -->
     <script src="../js/mobile-menu.js"></script>
     <script>
@@ -509,10 +618,10 @@
                 });
             });
 
-            // Add loading animation to buttons
-            document.querySelectorAll('button').forEach(button => {
+            // Add loading animation to buttons (exclude modal buttons)
+            document.querySelectorAll('button:not(#open-review-modal):not(#close-review-modal):not(#close-review-modal-btn):not(.rating-star)').forEach(button => {
                 button.addEventListener('click', function() {
-                    if (!this.classList.contains('loading')) {
+                    if (!this.classList.contains('loading') && this.type !== 'submit') {
                         this.classList.add('loading');
                         setTimeout(() => {
                             this.classList.remove('loading');
@@ -539,6 +648,14 @@
             document.querySelectorAll('section').forEach(section => {
                 observer.observe(section);
             });
+
+            // Fermer la modal avec le bouton annuler
+            const closeModalBtn = document.getElementById('close-review-modal-btn');
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', () => {
+                    document.getElementById('close-review-modal').click();
+                });
+            }
         });
     </script>
     
@@ -548,6 +665,7 @@
     <script src="../js/cart-manager.js"></script>
     <script src="../js/supabase-init.js"></script>
     <script src="../js/frontend-menu.js"></script>
+    <script src="../js/reviews-manager.js"></script>
 <script id="dhws-dataInjector" src="../public/dhws-data-injector.js"></script>
 </body>
 </html>
