@@ -32,16 +32,22 @@
             let attempts = 0;
             const maxAttempts = 50;
             
-            while (!window.supabase && attempts < maxAttempts) {
+            // Attendre que la bibliothèque Supabase et la configuration soient chargées
+            while ((!window.supabase || !window.getSupabaseClient) && attempts < maxAttempts) {
                 await new Promise(resolve => setTimeout(resolve, 100));
                 attempts++;
             }
 
-            if (window.supabase) {
-                this.supabase = window.supabase;
-                console.log('ReviewsManager: Supabase connecté');
+            if (window.getSupabaseClient) {
+                // Utiliser la fonction helper pour créer le client
+                this.supabase = window.getSupabaseClient();
+                if (this.supabase) {
+                    console.log('ReviewsManager: Supabase connecté');
+                } else {
+                    console.error('ReviewsManager: Impossible de créer le client Supabase');
+                }
             } else {
-                console.error('ReviewsManager: Impossible de se connecter à Supabase');
+                console.error('ReviewsManager: Fonction getSupabaseClient non trouvée');
             }
         }
 
