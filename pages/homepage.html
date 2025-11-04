@@ -494,21 +494,10 @@
     <!-- Modal pour laisser un avis -->
     <div id="review-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-2xl max-w-2xl w-full my-8 shadow-2xl relative">
-            <!-- Header -->
-            <div class="bg-primary text-white p-4 sm:p-6 rounded-t-2xl sticky top-0 z-10">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-xl sm:text-2xl font-playfair font-bold">Partagez Votre Expérience</h3>
-                    <button id="close-review-modal" class="text-white hover:text-accent transition-colors flex-shrink-0 ml-2">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-                <p class="text-primary-200 mt-2 text-sm sm:text-base">Votre avis nous aide à améliorer notre service</p>
-            </div>
+        
 
             <!-- Formulaire -->
-            <form id="review-form" class="p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-[calc(90vh-120px)] overflow-y-auto">
+            <form id="review-form" class="p-4 pt-10 sm:p-6 space-y-4 sm:space-y-6 max-h-[calc(90vh-120px)] overflow-y-auto">
                 <!-- Nom -->
                 <div>
                     <label for="customer_name" class="block text-sm font-medium text-gray-700 mb-2">
@@ -568,18 +557,39 @@
                         placeholder="Partagez votre expérience avec nous..."></textarea>
                 </div>
 
-                <!-- URL de la photo de profil (Optionnel) -->
-                <div>
-                    <label for="profile_image_url" class="block text-sm font-medium text-gray-700 mb-2">
-                        URL de votre Photo (Optionnel)
+                <!-- Téléversement d'image -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">
+                        Votre photo (optionnel)
                     </label>
-                    <input 
-                        type="url" 
-                        id="profile_image_url" 
-                        name="profile_image_url" 
-                        class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm sm:text-base"
-                        placeholder="https://exemple.com/photo.jpg">
-                    <p class="text-xs text-gray-500 mt-1">Un avatar par défaut sera utilisé si vide</p>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-1">
+                            <input type="url" 
+                                id="image_url" 
+                                name="image_url" 
+                                class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent" 
+                                placeholder="https://example.com/photo.jpg">
+                        </div>
+                        <span class="text-sm text-gray-500">ou</span>
+                        <div class="relative">
+                            <input type="file" 
+                                id="image_upload" 
+                                name="image_upload" 
+                                accept="image/*" 
+                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                onchange="document.getElementById('image_url').value = '';">
+                            <label for="image_upload" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg cursor-pointer transition-colors whitespace-nowrap">
+                                <svg class="inline-block w-4 h-4 mr-1 -mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                Téléverser
+                            </label>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Taille maximale : 2MB. Formats supportés : JPG, PNG, WebP</p>
+                    <div id="image-preview" class="mt-2 hidden">
+                        <img id="preview-image" src="#" alt="Aperçu de l'image" class="h-24 w-24 object-cover rounded-lg border border-gray-200">
+                    </div>
                 </div>
 
                 <!-- Boutons -->

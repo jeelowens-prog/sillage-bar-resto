@@ -98,3 +98,39 @@ INSERT INTO reviews (customer_name, customer_role, rating, comment, profile_imag
 -- ============================================
 -- FIN DU SCHÉMA REVIEWS
 -- ============================================
+
+
+-- ============================================
+-- crrer le bucket review-images
+-- ============================================
+
+-- 1. Activer l'extension si ce n'est pas déjà fait
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- 2. Créer le bucket pour les images des avis
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('review-images', 'review-images', true)
+ON CONFLICT (name) DO NOTHING;
+
+-- 3. Politique pour autoriser le téléversement d'images par les utilisateurs authentifiés
+CREATE POLICY "Autoriser le téléversement aux utilisateurs authentifiés"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+    bucket_id = 'review-images' AND
+    (storage.foldername(name))[1] = 'reviews' AND
+    (storage.extension(name) IN ('jpg', 'jpeg', 'png', 'webp')) AND
+    (storage.extension(name) IS NOT NULL)
+);
+
+-- 4. Politique pour autoriser la lecture publique des images
+CREATE POLICY "Autoriser la lecture publique des images"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'review-images');
+
+-- 5. Politique pour permettre la suppression des images (optionnel, pour les admins)
+CREATE POLICY "Autoriser la suppression des images aux admins"
+ON storage.objects FOR DELETE
+TO service_role
+USING (bucket_id = 'review-images');

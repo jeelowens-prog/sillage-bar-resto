@@ -180,6 +180,12 @@
                 closeModalBtn.addEventListener('click', () => this.closeModal());
             }
 
+            // Fermer avec le bouton annuler
+            const cancelBtn = document.getElementById('close-review-modal-btn');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => this.closeModal());
+            }
+
             // Fermer en cliquant en dehors
             const modal = document.getElementById('review-modal');
             if (modal) {
@@ -194,6 +200,43 @@
             const form = document.getElementById('review-form');
             if (form) {
                 form.addEventListener('submit', (e) => this.handleSubmit(e));
+                
+                // Gérer la prévisualisation de l'image
+                const imageUpload = document.getElementById('image_upload');
+                const imagePreview = document.getElementById('image-preview');
+                const previewImage = document.getElementById('preview-image');
+                
+                if (imageUpload && imagePreview && previewImage) {
+                    imageUpload.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                                previewImage.src = event.target.result;
+                                imagePreview.classList.remove('hidden');
+                            };
+                            reader.readAsDataURL(file);
+                            
+                            // Effacer le champ URL si un fichier est sélectionné
+                            document.getElementById('image_url').value = '';
+                        } else {
+                            previewImage.src = '#';
+                            imagePreview.classList.add('hidden');
+                        }
+                    });
+                    
+                    // Si l'utilisateur commence à saisir une URL, effacer le fichier sélectionné
+                    const imageUrlInput = document.getElementById('image_url');
+                    if (imageUrlInput) {
+                        imageUrlInput.addEventListener('input', () => {
+                            if (imageUrlInput.value.trim() !== '') {
+                                imageUpload.value = '';
+                                previewImage.src = '#';
+                                imagePreview.classList.add('hidden');
+                            }
+                        });
+                    }
+                }
             }
 
             // Gérer la sélection des étoiles
@@ -303,54 +346,78 @@
                 const formData = new FormData(form);
                 const reviewData = {
                     customer_name: formData.get('customer_name'),
-                    customer_role: formData.get('customer_role') || 'Client',
+                    customer_role: formData.get('customer_role') || null,
                     rating: parseInt(formData.get('rating')),
                     comment: formData.get('comment'),
-                    profile_image_url: formData.get('profile_image_url') || null,
-                    is_approved: true,
-                    is_active: true
+                    is_approved: false, // Les avis doivent être approuvés par un admin
+                    is_active: true,
+                    created_at: new Date().toISOString()
                 };
 
-                // Validation
-                if (!reviewData.customer_name || !reviewData.comment || !reviewData.rating) {
-                    alert('Veuillez remplir tous les champs obligatoires');
-                    return;
+                // Vérifier si une image est fournie
+                const imageUrl = formData.get('image_url');
+                const imageFileInput = document.getElementById('image_upload');
+                
+                if (imageFileInput && imageFileInput.files.length > 0) {
+                    const imageFile = imageFileInput.files[0];
+                    
+                    // Vérifier la taille du fichier (max 2MB)
+                    if (imageFile.size > 2 * 1024 * 1024) {
+                        throw new Error('La taille de l\'image ne doit pas dépasser 2MB');
+                    }
+                    
+                    // Vérifier le type de fichier
+                    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+                    if (!validTypes.includes(imageFile.type)) {
+                        throw new Error('Format d\'image non supporté. Utilisez JPG, PNG ou WebP');
+                    }
+                    
+                    // Téléverser l'image dans le bucket Supabase
+                    const fileExt = imageFile.name.split('.').pop();
+                    const fileName = `review_${Date.now()}.${fileExt}`;
+                    const filePath = `reviews/${fileName}`;
+                    
+                    const { data: uploadData, error: uploadError } = await this.supabase.storage
+                        .from('review-images')
+                        .upload(filePath, imageFile);
+                    
+                    if (uploadError) {
+                        throw new Error('Erreur lors du téléversement de l\'image: ' + uploadError.message);
+                    }
+                    
+                    // Récupérer l'URL publique de l'image
+                    const { data: { publicUrl } } = this.supabase.storage
+                        .from('review-images')
+                        .getPublicUrl(filePath);
+                    
+                    reviewData.profile_image_url = publicUrl;
+                } else if (imageUrl) {
+                    // Utiliser l'URL de l'image fournie
+                    reviewData.profile_image_url = imageUrl;
                 }
 
-                if (reviewData.rating < 1 || reviewData.rating > 5) {
-                    alert('Veuillez sélectionner une note de 1 à 5 étoiles');
-                    return;
-                }
-
-                // Insérer dans Supabase
+                // Insérer l'avis dans la base de données
                 const { data, error } = await this.supabase
                     .from('reviews')
                     .insert([reviewData])
                     .select();
 
                 if (error) {
-                    console.error('Erreur lors de l\'ajout de l\'avis:', error);
-                    alert('Erreur lors de l\'envoi de votre avis. Veuillez réessayer.');
-                    return;
+                    throw new Error('Erreur lors de l\'envoi de l\'avis: ' + error.message);
                 }
 
-                // Succès
-                console.log('Avis ajouté avec succès:', data);
-                
                 // Afficher un message de succès
-                this.showSuccessMessage();
+                alert('Merci pour votre avis ! Il sera publié après modération.');
                 
-                // Fermer la modal
+                // Fermer la modal et réinitialiser le formulaire
                 this.closeModal();
                 
                 // Recharger les avis
-                setTimeout(() => {
-                    this.loadReviews();
-                }, 500);
+                this.loadReviews();
 
             } catch (error) {
                 console.error('Erreur:', error);
-                alert('Une erreur est survenue. Veuillez réessayer.');
+                alert(error.message || 'Une erreur est survenue. Veuillez réessayer.');
             } finally {
                 // Réactiver le bouton
                 submitBtn.disabled = false;
