@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Système d'Avis - Le Sillage</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.success { background: #4CAF50; color: white; }
+        .status.error { background: #f44336; color: white; }
+        .status.pending { background: #FF9800; color: white; }
+        button {
+            background: #8B4513;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #6d3410; }
+        #results { margin-top: 20px; }
+        .review-card {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #8B4513;
+            border-radius: 4px;
+        }
+        .stars { color: #FFD700; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test du Système d'Avis Clients</h1>
+    
+    <div class="test-section">
+        <h2>1. Connexion à Supabase <span id="status-connection" class="status pending">En cours...</span></h2>
+        <p>Vérification de la connexion à Supabase...</p>
+        <div id="connection-details"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Table Reviews <span id="status-table" class="status pending">En attente</span></h2>
+        <p>Vérification de l'existence de la table reviews...</p>
+        <button onclick="testTable()">Tester la Table</button>
+        <div id="table-details"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Lecture des Avis <span id="status-read" class="status pending">En attente</span></h2>
+        <p>Récupération des avis depuis la base de données...</p>
+        <button onclick="testRead()">Lire les Avis</button>
+        <div id="read-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Création d'un Avis Test <span id="status-create" class="status pending">En attente</span></h2>
+        <p>Création d'un avis de test...</p>
+        <button onclick="testCreate()">Créer un Avis Test</button>
+        <div id="create-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Résumé des Tests</h2>
+        <div id="summary"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    
+    <script>
+        let supabaseClient = null;
+        let testResults = {
+            connection: false,
+            table: false,
+            read: false,
+            create: false
+        };
+
+        // Test 1: Connexion à Supabase
+        async function testConnection() {
+            try {
+                const config = window.Config.Supabase.get();
+                
+                if (!config.url || !config.anonKey) {
+                    document.getElementById('status-connection').textContent = 'ERREUR';
+                    document.getElementById('status-connection').className = 'status error';
+                    document.getElementById('connection-details').innerHTML = 
+                        '<p style="color: red;">❌ Configuration Supabase manquante!</p>' +
+                        '<p>Vérifiez /app/js/config.js</p>';
+                    return false;
+                }
+
+                supabaseClient = supabase.createClient(config.url, config.anonKey);
+                window.supabase = supabaseClient;
+                
+                document.getElementById('status-connection').textContent = 'OK';
+                document.getElementById('status-connection').className = 'status success';
+                document.getElementById('connection-details').innerHTML = 
+                    '<p style="color: green;">✅ Connexion réussie!</p>' +
+                    `<p><strong>URL:</strong> ${config.url}</p>`;
+                
+                testResults.connection = true;
+                return true;
+            } catch (error) {
+                document.getElementById('status-connection').textContent = 'ERREUR';
+                document.getElementById('status-connection').className = 'status error';
+                document.getElementById('connection-details').innerHTML = 
+                    `<p style="color: red;">❌ Erreur: ${error.message}</p>`;
+                return false;
+            }
+        }
+
+        // Test 2: Vérifier la table
+        async function testTable() {
+            if (!supabaseClient) {
+                alert('Veuillez d\'abord tester la connexion!');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('reviews')
+                    .select('count')
+                    .limit(1);
+
+                if (error) {
+                    document.getElementById('status-table').textContent = 'ERREUR';
+                    document.getElementById('status-table').className = 'status error';
+                    document.getElementById('table-details').innerHTML = 
+                        `<p style="color: red;">❌ Erreur: ${error.message}</p>` +
+                        '<p><strong>Solution:</strong> Exécutez le script SQL dans Supabase (voir INSTRUCTIONS_AVIS_CLIENTS.md)</p>';
+                    testResults.table = false;
+                } else {
+                    document.getElementById('status-table').textContent = 'OK';
+                    document.getElementById('status-table').className = 'status success';
+                    document.getElementById('table-details').innerHTML = 
+                        '<p style="color: green;">✅ Table "reviews" trouvée!</p>';
+                    testResults.table = true;
+                }
+            } catch (error) {
+                document.getElementById('status-table').textContent = 'ERREUR';
+                document.getElementById('status-table').className = 'status error';
+                document.getElementById('table-details').innerHTML = 
+                    `<p style="color: red;">❌ Erreur: ${error.message}</p>`;
+                testResults.table = false;
+            }
+        }
+
+        // Test 3: Lire les avis
+        async function testRead() {
+            if (!supabaseClient) {
+                alert('Veuillez d\'abord tester la connexion!');
+                return;
+            }
+
+            try {
+                const { data: reviews, error } = await supabaseClient
+                    .from('reviews')
+                    .select('*')
+                    .eq('is_approved', true)
+                    .eq('is_active', true)
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+
+                if (error) {
+                    document.getElementById('status-read').textContent = 'ERREUR';
+                    document.getElementById('status-read').className = 'status error';
+                    document.getElementById('read-results').innerHTML = 
+                        `<p style="color: red;">❌ Erreur: ${error.message}</p>`;
+                    testResults.read = false;
+                } else {
+                    document.getElementById('status-read').textContent = 'OK';
+                    document.getElementById('status-read').className = 'status success';
+                    
+                    let html = `<p style="color: green;">✅ ${reviews.length} avis trouvés!</p>`;
+                    
+                    if (reviews.length > 0) {
+                        html += '<div style="margin-top: 15px;">';
+                        reviews.forEach(review => {
+                            const stars = '⭐'.repeat(review.rating);
+                            html += `
+                                <div class="review-card">
+                                    <div><strong>${review.customer_name}</strong> - ${review.customer_role}</div>
+                                    <div class="stars">${stars} (${review.rating}/5)</div>
+                                    <div style="margin-top: 8px; color: #666;">"${review.comment}"</div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                    } else {
+                        html += '<p style="color: orange;">⚠️ Aucun avis trouvé. Exécutez le script SQL pour insérer les données initiales.</p>';
+                    }
+                    
+                    document.getElementById('read-results').innerHTML = html;
+                    testResults.read = true;
+                }
+            } catch (error) {
+                document.getElementById('status-read').textContent = 'ERREUR';
+                document.getElementById('status-read').className = 'status error';
+                document.getElementById('read-results').innerHTML = 
+                    `<p style="color: red;">❌ Erreur: ${error.message}</p>`;
+                testResults.read = false;
+            }
+        }
+
+        // Test 4: Créer un avis test
+        async function testCreate() {
+            if (!supabaseClient) {
+                alert('Veuillez d\'abord tester la connexion!');
+                return;
+            }
+
+            try {
+                const testReview = {
+                    customer_name: 'Test Automatique',
+                    customer_role: 'Testeur',
+                    rating: 5,
+                    comment: 'Ceci est un avis de test créé automatiquement à ' + new Date().toLocaleString(),
+                    is_approved: true,
+                    is_active: true
+                };
+
+                const { data, error } = await supabaseClient
+                    .from('reviews')
+                    .insert([testReview])
+                    .select();
+
+                if (error) {
+                    document.getElementById('status-create').textContent = 'ERREUR';
+                    document.getElementById('status-create').className = 'status error';
+                    document.getElementById('create-results').innerHTML = 
+                        `<p style="color: red;">❌ Erreur: ${error.message}</p>` +
+                        '<p><strong>Causes possibles:</strong></p>' +
+                        '<ul>' +
+                        '<li>Politiques RLS mal configurées</li>' +
+                        '<li>Permissions insuffisantes</li>' +
+                        '</ul>';
+                    testResults.create = false;
+                } else {
+                    document.getElementById('status-create').textContent = 'OK';
+                    document.getElementById('status-create').className = 'status success';
+                    document.getElementById('create-results').innerHTML = 
+                        '<p style="color: green;">✅ Avis créé avec succès!</p>' +
+                        `<p><strong>ID:</strong> ${data[0].id}</p>` +
+                        '<p>Vous pouvez maintenant rafraîchir la page d\'accueil pour voir cet avis.</p>';
+                    testResults.create = true;
+                }
+            } catch (error) {
+                document.getElementById('status-create').textContent = 'ERREUR';
+                document.getElementById('status-create').className = 'status error';
+                document.getElementById('create-results').innerHTML = 
+                    `<p style="color: red;">❌ Erreur: ${error.message}</p>`;
+                testResults.create = false;
+            }
+
+            // Mettre à jour le résumé
+            updateSummary();
+        }
+
+        // Mettre à jour le résumé
+        function updateSummary() {
+            const total = Object.keys(testResults).length;
+            const passed = Object.values(testResults).filter(v => v === true).length;
+            
+            let html = `<h3>Tests réussis: ${passed}/${total}</h3>`;
+            html += '<ul>';
+            html += `<li>Connexion Supabase: ${testResults.connection ? '✅' : '❌'}</li>`;
+            html += `<li>Table Reviews: ${testResults.table ? '✅' : '❌'}</li>`;
+            html += `<li>Lecture des avis: ${testResults.read ? '✅' : '❌'}</li>`;
+            html += `<li>Création d'avis: ${testResults.create ? '✅' : '❌'}</li>`;
+            html += '</ul>';
+            
+            if (passed === total) {
+                html += '<p style="color: green; font-size: 18px; font-weight: bold;">🎉 Tous les tests sont passés! Le système est opérationnel!</p>';
+                html += '<p><a href="pages/homepage.html" style="color: #8B4513; text-decoration: underline;">→ Voir la page d\'accueil</a></p>';
+            } else {
+                html += '<p style="color: orange;">⚠️ Certains tests ont échoué. Veuillez suivre les instructions ci-dessus.</p>';
+            }
+            
+            document.getElementById('summary').innerHTML = html;
+        }
+
+        // Exécuter le test de connexion au chargement
+        window.addEventListener('DOMContentLoaded', async () => {
+            await testConnection();
+            updateSummary();
+        });
+    </script>
+</body>
+</html>
