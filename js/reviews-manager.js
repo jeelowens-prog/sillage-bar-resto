@@ -255,6 +255,10 @@
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
                 document.body.style.overflow = 'hidden';
+                // Scroll vers le haut du modal
+                modal.scrollTop = 0;
+                const form = document.getElementById('review-form');
+                if (form) form.scrollTop = 0;
             }
         }
 
