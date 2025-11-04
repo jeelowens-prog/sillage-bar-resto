@@ -156,45 +156,58 @@
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     <!-- Reservation Form -->
-                    <div class="bg-white rounded-2xl p-8 shadow-card">
+                    <div id="reservation" class="bg-white rounded-2xl p-8 shadow-card">
                         <h3 class="text-2xl font-playfair font-bold text-primary mb-6">Formulaire de Réservation</h3>
                         <form class="space-y-6" id="reservation-form">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label for="first-name" class="block text-sm font-medium text-text-primary mb-2">Prénom *</label>
-                                    <input type="text" id="first-name" name="firstName" required 
-                                           class="w-full px-4 py-3 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
+                                    <label for="reservation-name" class="block text-sm font-medium text-text-primary mb-2">Nom complet *</label>
+                                    <input type="text" id="reservation-name" name="customer_name" required 
+                                           class="w-full px-4 py-3 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                                           placeholder="Votre nom complet">
                                 </div>
                                 <div>
-                                    <label for="last-name" class="block text-sm font-medium text-text-primary mb-2">Nom *</label>
-                                    <input type="text" id="last-name" name="lastName" required 
-                                           class="w-full px-4 py-3 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
+                                    <label for="reservation-email" class="block text-sm font-medium text-text-primary mb-2">Email</label>
+                                    <input type="email" id="reservation-email" name="customer_email" 
+                                           class="w-full px-4 py-3 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                                           placeholder="votre@email.com">
                                 </div>
                             </div>
-
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label for="phone" class="block text-sm font-medium text-text-primary mb-2">Téléphone *</label>
-                                    <input type="tel" id="phone" name="phone" required 
+                                    <label for="reservation-phone" class="block text-sm font-medium text-text-primary mb-2">Téléphone *</label>
+                                    <input type="tel" id="reservation-phone" name="customer_phone" required 
                                            class="w-full px-4 py-3 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
-                                           placeholder="+509 XXXX-XXXX">
+                                           pattern="[0-9]{8,}" title="Veuillez entrer un numéro de téléphone valide"
+                                           placeholder="Ex: 12345678">
                                 </div>
                                 <div>
-                                    <label for="email" class="block text-sm font-medium text-text-primary mb-2">Email</label>
-                                    <input type="email" id="email" name="email" 
-                                           class="w-full px-4 py-3 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
+                                    <label for="number-guests" class="block text-sm font-medium text-text-primary mb-2">Nombre de personnes *</label>
+                                    <select id="number-guests" name="number_of_guests" required 
+                                            class="w-full px-4 py-3 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
+                                        <option value="1">1 personne</option>
+                                        <option value="2" selected>2 personnes</option>
+                                        <option value="3">3 personnes</option>
+                                        <option value="4">4 personnes</option>
+                                        <option value="5">5 personnes</option>
+                                        <option value="6">6 personnes</option>
+                                        <option value="7">7 personnes</option>
+                                        <option value="8">8 personnes</option>
+                                        <option value="9">9 personnes</option>
+                                        <option value="10">10 personnes</option>
+                                        <option value="11">Plus de 10 personnes</option>
+                                    </select>
                                 </div>
                             </div>
-
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
-                                    <label for="date" class="block text-sm font-medium text-text-primary mb-2">Date *</label>
-                                    <input type="date" id="date" name="date" required 
+                                    <label for="reservation-date" class="block text-sm font-medium text-text-primary mb-2">Date *</label>
+                                    <input type="date" id="reservation-date" name="reservation_date" required 
                                            class="w-full px-4 py-3 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
                                 </div>
                                 <div>
-                                    <label for="time" class="block text-sm font-medium text-text-primary mb-2">Heure *</label>
-                                    <select id="time" name="time" required 
+                                    <label for="reservation-time" class="block text-sm font-medium text-text-primary mb-2">Heure *</label>
+                                    <select id="reservation-time" name="reservation_time" required 
                                             class="w-full px-4 py-3 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
                                         <option value="">Choisir l'heure</option>
                                         <option value="11:00">11:00</option>
@@ -214,42 +227,25 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label for="guests" class="block text-sm font-medium text-text-primary mb-2">Personnes *</label>
-                                    <select id="guests" name="guests" required 
+                                    <label for="occasion" class="block text-sm font-medium text-text-primary mb-2">Occasion</label>
+                                    <select id="occasion" name="occasion" 
                                             class="w-full px-4 py-3 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
-                                        <option value="">Nombre</option>
-                                        <option value="1">1 personne</option>
-                                        <option value="2">2 personnes</option>
-                                        <option value="3">3 personnes</option>
-                                        <option value="4">4 personnes</option>
-                                        <option value="5">5 personnes</option>
-                                        <option value="6">6 personnes</option>
-                                        <option value="7">7 personnes</option>
-                                        <option value="8">8 personnes</option>
-                                        <option value="9+">9+ personnes</option>
+                                        <option value="">Sélectionner une occasion</option>
+                                        <option value="anniversary">Anniversaire</option>
+                                        <option value="birthday">Fête d'anniversaire</option>
+                                        <option value="business">Repas d'affaires</option>
+                                        <option value="romantic">Dîner romantique</option>
+                                        <option value="celebration">Célébration</option>
+                                        <option value="other">Autre</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <div>
-                                <label for="occasion" class="block text-sm font-medium text-text-primary mb-2">Occasion Spéciale</label>
-                                <select id="occasion" name="occasion" 
-                                        class="w-full px-4 py-3 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
-                                    <option value="">Sélectionner une occasion</option>
-                                    <option value="anniversary">Anniversaire</option>
-                                    <option value="birthday">Fête d'anniversaire</option>
-                                    <option value="business">Repas d'affaires</option>
-                                    <option value="romantic">Dîner romantique</option>
-                                    <option value="celebration">Célébration</option>
-                                    <option value="other">Autre</option>
-                                </select>
-                            </div>
-
-                            <div>
+                            <div class="col-span-1 md:col-span-3">
                                 <label for="special-requests" class="block text-sm font-medium text-text-primary mb-2">Demandes Spéciales</label>
-                                <textarea id="special-requests" name="specialRequests" rows="4" 
+                                <textarea id="special-requests" name="special_requests" rows="3" 
                                           class="w-full px-4 py-3 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
-                                          placeholder="Allergies alimentaires, préférences de table, demandes spéciales..."></textarea>
+                                          placeholder="Allergies, fauteuil roulant, anniversaire..."></textarea>
                             </div>
 
                             <div class="flex items-center space-x-3">
@@ -508,9 +504,9 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                         </svg>
                                         <div>
-                                            <div class="font-medium text-text-primary">123 Rue Lamarre</div>
+                                            <div class="font-medium text-text-primary">21, Rue Catalpa, Delmas 33</div>
                                             <div>Port-au-Prince, Haïti</div>
-                                            <div class="text-sm mt-1">Près du Champ de Mars</div>
+                                            <div class="text-sm mt-1">A Silo</div>
                                         </div>
                                     </div>
                                 </address>
@@ -953,6 +949,20 @@
         </div>
     </footer>
 
+    <!-- Add your JavaScript files here -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase-config.js"></script>
+    <script src="../js/reservation-system.js"></script>
+    <script>
+        // Initialize the reservation system only once
+        if (window.reservationSystem && typeof window.reservationSystem.setupReservationForm === 'function') {
+            window.reservationSystem.setupReservationForm();
+        } else {
+            console.error('Reservation system not loaded correctly');
+        }
+    </script>
+    <script src="../js/main.js"></script>
+
     <!-- JavaScript -->
     <script src="../js/mobile-menu.js"></script>
     <script>
@@ -1062,6 +1072,7 @@
     <script src="../js/cart-manager.js"></script>
     <script src="../js/supabase-init.js"></script>
     <script src="../js/reservation-system.js"></script>
+    <script src="../js/reservation_whatsapp.js"></script>
     <script src="../js/order-system.js"></script>
     <!-- Ajoutez cette ligne dans votre HTML existant -->
 <script src="../js/paiement_whatsapp.js"></script>

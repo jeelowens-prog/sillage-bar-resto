@@ -35,6 +35,14 @@
         const reservationForm = document.getElementById('reservation-form');
         if (!reservationForm) return;
 
+        // Supprimer les écouteurs d'événements existants pour éviter les doublons
+        const newForm = reservationForm.cloneNode(true);
+        reservationForm.parentNode.replaceChild(newForm, reservationForm);
+        
+        // Référence au nouveau formulaire
+        const form = document.getElementById('reservation-form');
+        if (!form) return; // S'assurer que le formulaire existe
+        
         // Set minimum date to today
         const dateInput = document.getElementById('reservation-date');
         if (dateInput) {
@@ -42,7 +50,8 @@
             dateInput.setAttribute('min', today);
         }
 
-        reservationForm.addEventListener('submit', async function(e) {
+        // Ajouter l'écouteur d'événement avec une option once: true
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
 
             if (!supabaseClient) {
@@ -74,13 +83,16 @@
                 if (error) throw error;
 
                 // Show success message
+                alert('Réservation envoyée avec succès ! Nous vous contacterons bientôt pour confirmation.');
+                
+                // Reset form
+                form.reset();
+                
+                // Show success message in the UI as well
                 showSuccessMessage(
                     'Réservation envoyée!',
                     'Votre demande de réservation a été envoyée avec succès. Nous vous confirmerons par téléphone ou email dans les plus brefs délais.'
                 );
-                
-                // Reset form
-                reservationForm.reset();
 
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Réserver';
