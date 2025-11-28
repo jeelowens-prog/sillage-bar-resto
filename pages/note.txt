@@ -9,23 +9,68 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "833ba6e7-d68b-4391-bef7-bafe170c3aeb",
-          allowLocalhostAsSecureOrigin: true,
-          autoPrompt: true, // ✅ La popup s'affichera automatiquement
-          notifyButton: {
-            enable: true,
-            position: 'bottom-left'
-          }
-        });
-        
-        // Tag user as admin
-        await OneSignal.User.addTag("role", "admin");
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    try {
+      // Initialisation avec configuration complète
+      await OneSignal.init({
+        appId: "833ba6e7-d68b-4391-bef7-bafe170c3aeb",
+        serviceWorkerParam: { scope: '/' },
+        serviceWorkerPath: '/OneSignalSDKWorker.js',
+        allowLocalhostAsSecureOrigin: true, // ✅ Important pour localhost!
       });
-    </script>
+      
+      console.log('✅ OneSignal initialized');
+      
+      // Vérifier la permission actuelle
+      const currentPermission = await OneSignal.Notifications.permission;
+      console.log('📢 Current permission:', currentPermission);
+      
+      // Tag user as admin APRÈS l'initialisation
+      await OneSignal.User.addTag("role", "admin");
+      console.log('✅ Tag "admin" added');
+      
+      // Demander la permission si pas encore accordée
+      if (!currentPermission) {
+        console.log('🔔 Requesting notification permission...');
+        const permissionGranted = await OneSignal.Notifications.requestPermission();
+        console.log('Permission granted:', permissionGranted);
+      }
+      
+      // Attendre que la souscription soit prête
+      setTimeout(async () => {
+        const subscription = await OneSignal.User.PushSubscription.id;
+        const optedIn = await OneSignal.User.PushSubscription.optedIn;
+        
+        console.log('🆔 Subscription ID:', subscription);
+        console.log('✅ Opted In:', optedIn);
+        
+        if (subscription) {
+          console.log('🎉 Vous êtes abonné aux notifications!');
+          
+          // Afficher un message à l'admin
+          const notifStatus = document.createElement('div');
+          notifStatus.style.cssText = 'position: fixed; top: 80px; right: 20px; background: #10b981; color: white; padding: 1rem; border-radius: 0.5rem; z-index: 9999;';
+          notifStatus.innerHTML = '✅ Notifications activées<br>ID: ' + subscription.substring(0, 20) + '...';
+          document.body.appendChild(notifStatus);
+          
+          setTimeout(() => notifStatus.remove(), 5000);
+        } else {
+          console.warn('⚠️ Pas de subscription ID');
+        }
+      }, 2000);
+      
+      // Logger les changements de subscription
+      OneSignal.User.PushSubscription.addEventListener('change', (event) => {
+        console.log('📱 Subscription changed:', event);
+      });
+      
+    } catch (error) {
+      console.error('❌ OneSignal Error:', error);
+    }
+  });
+</script>
 
     <style>
         /* Admin Portal Styles */
@@ -698,6 +743,131 @@
         </div>
     </div>
 
+    <!-- Section Test Notifications -->
+<div style="position: fixed; bottom: 20px; right: 20px; background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 400px; z-index: 1000;">
+    <h3 style="margin: 0 0 1rem 0; color: #8b4513;">🔔 Test Notifications</h3>
+    
+    <div id="onesignal-status" style="margin-bottom: 1rem; padding: 0.75rem; background: #f3f4f6; border-radius: 0.5rem; font-size: 0.875rem;">
+        <div>⏳ Vérification OneSignal...</div>
+    </div>
+    
+    <button onclick="checkOneSignalStatus()" class="btn btn-primary" style="width: 100%; margin-bottom: 0.5rem;">
+        📊 Vérifier Statut
+    </button>
+    
+    <button onclick="sendTestNotification()" class="btn btn-success" style="width: 100%; margin-bottom: 0.5rem;">
+        🧪 Envoyer Notification Test
+    </button>
+    
+    <button onclick="requestPermissionAgain()" class="btn btn-warning" style="width: 100%;">
+        🔔 Re-demander Permission
+    </button>
+</div>
+
+<script>
+// Vérifier le statut OneSignal
+async function checkOneSignalStatus() {
+    const statusDiv = document.getElementById('onesignal-status');
+    
+    try {
+        const permission = await OneSignal.Notifications.permission;
+        const optedIn = await OneSignal.User.PushSubscription.optedIn;
+        const subscriptionId = await OneSignal.User.PushSubscription.id;
+        const token = await OneSignal.User.PushSubscription.token;
+        
+        statusDiv.innerHTML = `
+            <div style="line-height: 1.6;">
+                <strong>Permission:</strong> ${permission ? '✅ Accordée' : '❌ Refusée'}<br>
+                <strong>Opted In:</strong> ${optedIn ? '✅ Oui' : '❌ Non'}<br>
+                <strong>Subscription ID:</strong> ${subscriptionId ? '✅ ' + subscriptionId.substring(0, 20) + '...' : '❌ Aucun'}<br>
+                <strong>Token:</strong> ${token ? '✅ Présent' : '❌ Aucun'}
+            </div>
+        `;
+        
+        console.log('Full Status:', { permission, optedIn, subscriptionId, token });
+        
+    } catch (error) {
+        statusDiv.innerHTML = `<div style="color: #ef4444;">❌ Erreur: ${error.message}</div>`;
+        console.error('Error checking status:', error);
+    }
+}
+
+// Envoyer une notification test
+async function sendTestNotification() {
+    const statusDiv = document.getElementById('onesignal-status');
+    statusDiv.innerHTML = '<div>📤 Envoi en cours...</div>';
+    
+    try {
+        // Vérifier d'abord si l'utilisateur est bien abonné
+        const optedIn = await OneSignal.User.PushSubscription.optedIn;
+        if (!optedIn) {
+            statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Vous devez d\'abord accepter les notifications!</div>';
+            return;
+        }
+        
+        // Envoyer via la Edge Function
+        const response = await fetch('https://yayoxqzxmijzipryevcr.supabase.co/functions/v1/push-notification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlheW94cXp4bWlqemlwcnlldmNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxNzY5ODIsImV4cCI6MjA3Nzc1Mjk4Mn0.WUT4oCXU_vbanm2sQPjBWxXfcPcllyKju2F_P3K1qqI'
+            },
+            body: JSON.stringify({
+                record: {
+                    customer_name: 'Test Client',
+                    number_of_guests: 4,
+                    reservation_date: new Date().toISOString().split('T')[0],
+                    reservation_time: '19:00'
+                },
+                type: 'INSERT',
+                table: 'reservations'
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            statusDiv.innerHTML = `
+                <div style="color: #10b981;">
+                    ✅ Notification envoyée!<br>
+                    Recipients: ${result.recipients || 'N/A'}
+                </div>
+            `;
+            console.log('Notification result:', result);
+        } else {
+            statusDiv.innerHTML = `<div style="color: #ef4444;">❌ Erreur: ${JSON.stringify(result)}</div>`;
+        }
+        
+    } catch (error) {
+        statusDiv.innerHTML = `<div style="color: #ef4444;">❌ Erreur: ${error.message}</div>`;
+        console.error('Error sending notification:', error);
+    }
+}
+
+// Re-demander la permission
+async function requestPermissionAgain() {
+    const statusDiv = document.getElementById('onesignal-status');
+    
+    try {
+        statusDiv.innerHTML = '<div>🔔 Demande de permission...</div>';
+        const granted = await OneSignal.Notifications.requestPermission();
+        
+        if (granted) {
+            statusDiv.innerHTML = '<div style="color: #10b981;">✅ Permission accordée!</div>';
+            setTimeout(() => checkOneSignalStatus(), 1000);
+        } else {
+            statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Permission refusée</div>';
+        }
+    } catch (error) {
+        statusDiv.innerHTML = `<div style="color: #ef4444;">❌ Erreur: ${error.message}</div>`;
+    }
+}
+
+// Vérifier automatiquement au chargement
+window.addEventListener('load', () => {
+    setTimeout(() => checkOneSignalStatus(), 3000);
+});
+</script>
 
 
     <script src="../js/config.js"></script>

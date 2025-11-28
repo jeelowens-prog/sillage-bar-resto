@@ -1,0 +1,13 @@
+{
+  "name": "python",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0",
+  "dependencies": {
+    "minimist": "^1.2.8",
+    "yargs": "^18.0.0"
+  },
+  "main": "index.js",
+  "nane": "nodejs"
+}
