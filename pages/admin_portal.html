@@ -4,28 +4,43 @@
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#8b4513">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sillage Admin">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/images/icon-192.png">
     <title>Portail Admin - Le Sillage Bar Restaurant</title>
     <link rel="stylesheet" href="../css/main.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "833ba6e7-d68b-4391-bef7-bafe170c3aeb",
-          allowLocalhostAsSecureOrigin: true,
-          autoPrompt: true, // ✅ La popup s'affichera automatiquement
-          notifyButton: {
-            enable: true,
-            position: 'bottom-left'
-          }
-        });
-        
-        // Tag user as admin
-        await OneSignal.User.addTag("role", "admin");
-      });
-    </script>
+    <script src="../js/pwa-register.js"></script>
+   <script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "833ba6e7-d68b-4391-bef7-bafe170c3aeb",
+      allowLocalhostAsSecureOrigin: true,
+      promptOptions: {
+        slidedown: {
+          enabled: true,
+          autoPrompt: true
+        }
+      },
+      notifyButton: {
+        enable: true,
+        displayPredicate: function() {
+          return true; // ✅ Toujours afficher
+        },
+        position: 'bottom-right'
+      }
+    });
+    
+    // Tag user as admin
+    await OneSignal.User.addTag("role", "admin");
+  });
+</script>
 
     <style>
         /* Admin Portal Styles */
@@ -390,6 +405,7 @@
                     Déconnexion
                 </button>
             </div>
+            
         </div>
     </header>
 
@@ -703,6 +719,7 @@
     <script src="../js/config.js"></script>
     <script src="../js/admin-reviews.js"></script>
     <script type="module">
+        
         // Vérifier la configuration Supabase
         if (typeof window.Config === 'undefined' || !window.Config.Supabase.isConfigured()) {
             alert('Configuration Supabase manquante dans js/config.js!');
@@ -1392,5 +1409,6 @@
             return labels[category] || category;
         }
     </script>
+    
 </body>
 </html>
